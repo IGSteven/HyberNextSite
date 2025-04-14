@@ -1,0 +1,76 @@
+{
+  "articles": [
+    {
+      "id": "1",
+      "title": "Getting Started with HyberHost",
+      "slug": "getting-started",
+      "content": "# Getting Started with HyberHost\n\nWelcome to HyberHost! This guide will help you get started with our services.\n\n## Creating an Account\n\nTo get started, you'll need to create an account. Visit our [registration page](/register) and follow the instructions.\n\n## Choosing a Service\n\nWe offer a variety of services, including VPS hosting, dedicated servers, and shared hosting. Visit our [services page](/services) to learn more about what we offer.\n\n## Setting Up Your Server\n\nOnce you've chosen a service, you'll need to set up your server. Our control panel makes this easy. Just log in to your account and follow the instructions.\n\n## Getting Help\n\nIf you need help, our support team is available 24/7. Visit our [support page](/support) to get in touch.",
+      "excerpt": "Learn how to get started with HyberHost's services, from creating an account to setting up your server.",
+      "authorId": "1",
+      "categoryIds": ["1"],
+      "createdAt": "2023-01-01T00:00:00Z",
+      "updatedAt": "2023-01-01T00:00:00Z",
+      "publishedAt": "2023-01-01T00:00:00Z",
+      "status": "published",
+      "featured": true,
+      "tags": ["getting started", "tutorial", "beginner"]
+    },
+    {
+      "id": "2",
+      "title": "VPS Management Guide",
+      "slug": "vps-management",
+      "content": "# VPS Management Guide\n\nThis guide will help you manage your VPS effectively.\n\n## Accessing Your VPS\n\nYou can access your VPS through SSH or through our control panel.\n\n### SSH Access\n\nTo access your VPS through SSH, use the following command:\n\n```bash\nssh username@your-vps-ip\n```\n\n### Control Panel Access\n\nYou can also access your VPS through our control panel. Just log in to your account and navigate to the VPS section.\n\n## Managing Resources\n\nYou can manage your VPS resources through our control panel. You can upgrade or downgrade your plan at any time.\n\n## Backups\n\nWe recommend setting up regular backups for your VPS. You can do this through our control panel or through a third-party service.",
+      "excerpt": "Learn how to manage your VPS effectively, from accessing it to managing resources and setting up backups.",
+      "authorId": "2",
+      "categoryIds": ["2", "3"],
+      "createdAt": "2023-01-02T00:00:00Z",
+      "updatedAt": "2023-01-02T00:00:00Z",
+      "publishedAt": "2023-01-02T00:00:00Z",
+      "status": "published",
+      "featured": false,
+      "tags": ["vps", "management", "intermediate"]
+    },
+    {
+      "id": "3",
+      "title": "Security Best Practices",
+      "slug": "security-best-practices",
+      "content": "# Security Best Practices\n\nThis guide covers security best practices for your HyberHost services.\n\n## Strong Passwords\n\nAlways use strong, unique passwords for your accounts. We recommend using a password manager to generate and store your passwords.\n\n## Two-Factor Authentication\n\nEnable two-factor authentication (2FA) for your HyberHost account. This adds an extra layer of security.\n\n## Regular Updates\n\nKeep your server software up to date. Regular updates include security patches that protect against known vulnerabilities.\n\n## Firewall Configuration\n\nConfigure your firewall to only allow necessary traffic. This helps protect your server from unauthorized access.\n\n## Regular Security Audits\n\nPerform regular security audits to identify and address potential vulnerabilities.",
+      "excerpt": "Learn about security best practices for your HyberHost services, from strong passwords to regular security audits.",
+      "authorId": "1",
+      "categoryIds": ["4"],
+      "createdAt": "2023-01-03T00:00:00Z",
+      "updatedAt": "2023-01-03T00:00:00Z",
+      "publishedAt": "2023-01-03T00:00:00Z",
+      "status": "published",
+      "featured": true,
+      "tags": ["security", "best practices", "intermediate"]
+    }
+  ],
+  "categories": [
+    {
+      "id": "1",
+      "name": "Getting Started",
+      "slug": "getting-started",
+      "description": "Guides to help you get started with HyberHost services."
+    },
+    {
+      "id": "2",
+      "name": "VPS",
+      "slug": "vps",
+      "description": "Everything you need to know about our VPS services."
+    },
+    {
+      "id": "3",
+      "name": "Management",
+      "slug": "management",
+      "description": "Guides for managing your HyberHost services.",
+      "parentId": "2"
+    },
+    {
+      "id": "4",
+      "name": "Security",
+      "slug": "security",
+      "description": "Security guides and best practices."
+    }
+  ]
+}

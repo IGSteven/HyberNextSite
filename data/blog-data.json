@@ -1,0 +1,85 @@
+{
+  "posts": [
+    {
+      "id": "1",
+      "title": "World Backup Day 2025: Unleashing New Offsite NAS",
+      "slug": "world-backup-day-2025",
+      "excerpt": "As we approach World Backup Day 2025, we explore why data protection strategies are more critical than ever for businesses of all sizes.",
+      "content": "# ## Unleashing New Offsite NAS\n\nEvery year on **March 31st**, tech professionals and businesses around the world come together to celebrate *World Backup Day*—a timely reminder of the importance of safeguarding our data. At **HyberHost**, we take data protection seriously. That’s why we’re excited to announce the deployment of our **brand‐new offsite NAS** designed specifically to power our customer **VPS Backups**.\n\n---\n\n### Why World Backup Day Matters\n\nIn today’s digital landscape, losing data can have serious consequences—from lost productivity to long-term business disruptions. World Backup Day is not just about taking advantage of the latest backup deals; it’s about making sure that your critical data is secure, available, and always recoverable. By revisiting our backup strategies and investing in robust infrastructure, we’re ensuring that both our customers and our systems are prepared for any eventuality.\n\n---\n\n### Introducing Our New Offsite NAS\n\nTo bolster our backup capabilities, we’ve deployed a **state-of-the-art NAS system** with the following impressive specifications:\n\n- **Processor:** AMD Ryzen 9 5950X  \n  *(High-performance 16-core CPU ensuring rapid data processing and smooth operation.)*\n\n- **Memory:** 64GB DDR4 ECC  \n  *(Error-Correcting Code memory for superior stability and reliability.)*\n\n- **Storage:**  \n  - 2 × 4TB NVMe drives for lightning-fast caching and critical data acceleration  \n  - 4 × 14TB HDDs for massive capacity to securely store customer VPS backups\n\n---\n\n### Key Benefits\n\n- **Enhanced Performance:**  \n  The powerful 5950X paired with high-speed NVMe drives means faster backup processes and rapid recovery times.\n\n- **Data Integrity:**  \n  With ECC memory and a robust mix of NVMe and high-capacity HDDs, our system is built to minimize errors and ensure reliable storage.\n\n- **Scalability & Capacity:**  \n  The combination of fast NVMe storage with large-capacity HDDs lets us handle growing data needs while maintaining a streamlined backup process.\n\n- **Offsite Security:**  \n  Being located offsite, this NAS adds an extra layer of security by physically separating backup data from primary operations, reducing risks from local disasters.\n\n---\n\n### A Commitment to Your Data Safety\n\nDeploying this advanced NAS is part of our ongoing commitment to providing our customers with **top-tier backup solutions**. As data volumes increase and cyber threats evolve, having a resilient backup infrastructure is more important than ever. Our new offsite NAS not only reinforces our VPS backup services but also sets a new standard for **secure, high-performance data protection**.\n\n---\n\n### How You Can Benefit\n\nWhether you’re managing a business or safeguarding personal data, *World Backup Day* is the perfect reminder to review and improve your backup strategy. We encourage you to:\n\n- **Review your current backup procedures:**  \n  Make sure you’re following a 3-2-1 backup strategy *(three copies of data, on two different media, with one offsite)*.\n\n- **Invest in reliable hardware:**  \n  Look for systems that combine speed, capacity, and reliability—just like our new NAS.\n\n- **Stay informed:**  \n  Follow trusted blogs and industry updates to learn about the latest in backup technologies and best practices.",
+      "coverImage": "/placeholder.svg?height=600&width=1200&query=server+backup+systems",
+      "metaTitle": "World Backup Day 2025: Why Data Protection Matters More Than Ever | HyberHost",
+      "metaDescription": "Learn why data protection strategies are more critical than ever as we approach World Backup Day 2025, and discover how HyberHost can help secure your valuable data.",
+      "publishedAt": "2025-03-15T10:00:00Z",
+      "status": "published",
+      "authorId": "2",
+      "categoryId": "1",
+      "categories": ["1", "3"],
+      "featured": true
+    }
+  ],
+  "categories": [
+    {
+      "id": "1",
+      "name": "News",
+      "slug": "news",
+      "description": "Latest company news and announcements"
+    },
+    {
+      "id": "2",
+      "name": "Tutorials",
+      "slug": "Tutorials",
+      "description": "Helpful guides and tutorials"
+    },
+    {
+      "id": "3",
+      "name": "Technology",
+      "slug": "technology",
+      "description": "Updates on hosting technology and infrastructure."
+    },
+    {
+      "id": "4",
+      "name": "Product Updates",
+      "slug": "tutorials",
+      "description": "Information about our latest product features and improvements"
+    },
+    {
+      "id": "5",
+      "name": "Network Updates",
+      "slug": "network",
+      "description": "Updates about our network infrastructure and connectivity."
+    }
+  ],
+  "authors": [
+    {
+      "id": "1",
+      "name": "HyberHost Team",
+      "slug": "HyberHost",
+      "bio": "The HyberHost .",
+      "avatar": "https://s3-eu-west-1.amazonaws.com/tpd/logos/63a04b6405b36e5df9d0db59/0x0.png",
+      "tags": [ "staff", "official" ],
+      "links": {
+        "website": "",
+        "linkedin": "",
+        "github": "",
+        "twitter": "",
+        "twitch": ""
+      }
+    },
+    {
+      "id": "2",
+      "name": "Steven Smith",
+      "slug": "Steven-Smith",
+      "title": "Technical Director @ HyberHost",
+      "bio": "",
+      "avatar": "https://pbs.twimg.com/profile_images/1329663456769957888/Nt8D1oKO_400x400.jpg",
+      "tags": [ "Staff", "Management" ],
+      "links": {
+        "website": "",
+        "linkedin": "igsteven",
+        "github": "IGSteven",
+        "twitter": "",
+        "twitch": ""
+      }
+    }
+  ]
+}

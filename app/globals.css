@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 28 67% 56%; /* HyberHost Orange */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 6 34% 48%; /* HyberHost Redwood */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 273 26% 28%; /* HyberHost Violet */
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 28 67% 56%; /* HyberHost Orange */
+    --radius: 0.5rem;
+    --font-maven: var(--font-maven-pro);
+    --font-sans: var(--font-inter);
+  }
+
+  .dark {
+    --background: 273 26% 18%; /* HyberHost Dark Purple */
+    --foreground: 210 40% 98%;
+    --card: 273 26% 18%; /* HyberHost Dark Purple */
+    --card-foreground: 210 40% 98%;
+    --popover: 273 26% 18%; /* HyberHost Dark Purple */
+    --popover-foreground: 210 40% 98%;
+    --primary: 28 67% 56%; /* HyberHost Orange */
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 6 34% 48%; /* HyberHost Redwood */
+    --secondary-foreground: 210 40% 98%;
+    --muted: 273 26% 28%; /* HyberHost Violet */
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 273 26% 28%; /* HyberHost Violet */
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 273 26% 28%; /* HyberHost Violet */
+    --input: 273 26% 28%; /* HyberHost Violet */
+    --ring: 28 67% 56%; /* HyberHost Orange */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .nav-item {
+    font-family: var(--font-maven);
+  }
+}
+
+/* Add animation for gradient background */
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-slow {
+  animation: gradient-shift 15s ease infinite;
+  background-size: 200% 200%;
+}
