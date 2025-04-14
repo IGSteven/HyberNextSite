@@ -17,41 +17,26 @@ export default async function PricingTable() {
   const sampleVpsPlans = [
     {
       id: 1,
-      name: "Starter VPS",
-      description: "Perfect for small websites and applications",
+      name: "Legacy Intel VPS",
+      shortDescription: "Reliable Intel-based virtual servers",
       pricing: { monthly: 19.99, annually: 199.99 },
-      features: ["2 vCPU Cores", "4GB RAM", "50GB SSD Storage", "Unmetered Bandwidth", "Full Root Access"],
+      features: ["Base Clock: 3.60 GHz", "Cores: 2", "RAM: 4GB", "Storage: 50GB SSD", "Unmetered Bandwidth"],
       type: "vps",
     },
     {
       id: 2,
-      name: "Business VPS",
-      description: "Ideal for growing businesses",
+      name: "Ryzen AM4 VPS",
+      shortDescription: "High-performance AMD Ryzen servers",
       pricing: { monthly: 39.99, annually: 399.99 },
-      features: [
-        "4 vCPU Cores",
-        "8GB RAM",
-        "100GB SSD Storage",
-        "Unmetered Bandwidth",
-        "Full Root Access",
-        "Daily Backups",
-      ],
+      features: ["Base Clock: 4.20 GHz", "Cores: 4", "RAM: 8GB", "Storage: 100GB NVMe", "Unmetered Bandwidth"],
       type: "vps",
     },
     {
       id: 3,
-      name: "Premium VPS",
-      description: "For high-traffic websites and applications",
+      name: "Ryzen AM5 VPS",
+      shortDescription: "Latest generation AMD Ryzen technology",
       pricing: { monthly: 59.99, annually: 599.99 },
-      features: [
-        "6 vCPU Cores",
-        "16GB RAM",
-        "200GB SSD Storage",
-        "Unmetered Bandwidth",
-        "Full Root Access",
-        "Daily Backups",
-        "DDoS Protection",
-      ],
+      features: ["Base Clock: 4.50 GHz", "Cores: 6", "RAM: 16GB", "Storage: 200GB NVMe", "Unmetered Bandwidth"],
       type: "vps",
     },
   ]
@@ -60,7 +45,7 @@ export default async function PricingTable() {
     {
       id: 4,
       name: "Basic Dedicated",
-      description: "Entry-level dedicated server",
+      shortDescription: "Entry-level dedicated server",
       pricing: { monthly: 99.99, annually: 999.99 },
       features: ["4 CPU Cores", "16GB RAM", "500GB SSD Storage", "Unmetered Bandwidth", "Full Hardware Control"],
       type: "dedicated",
@@ -68,7 +53,7 @@ export default async function PricingTable() {
     {
       id: 5,
       name: "Pro Dedicated",
-      description: "For resource-intensive applications",
+      shortDescription: "For resource-intensive applications",
       pricing: { monthly: 149.99, annually: 1499.99 },
       features: [
         "8 CPU Cores",
@@ -83,7 +68,7 @@ export default async function PricingTable() {
     {
       id: 6,
       name: "Enterprise Dedicated",
-      description: "High-performance dedicated server",
+      shortDescription: "High-performance dedicated server",
       pricing: { monthly: 199.99, annually: 1999.99 },
       features: [
         "12 CPU Cores",
@@ -110,16 +95,16 @@ export default async function PricingTable() {
             <div key={product.id} className="flex flex-col border rounded-lg overflow-hidden">
               <div className="bg-hyber-orange p-6 text-white">
                 <h3 className="text-xl font-bold">{product.name}</h3>
-                <p className="mt-2 text-white">{product.description}</p>
+                <p className="mt-2 text-white">{product.shortDescription || "High-performance virtual server"}</p>
               </div>
               <div className="p-6 flex-1 flex flex-col">
                 <div className="mb-6">
                   <p className="text-3xl font-bold">
-                    ${product.pricing.monthly.toFixed(2)}
+                    ${(product.pricing.monthly || 19.99).toFixed(2)}
                     <span className="text-sm font-normal text-muted-foreground">/month</span>
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Billed monthly or ${product.pricing.annually?.toFixed(2)}/year
+                    Billed monthly or ${(product.pricing.annually || product.pricing.monthly * 10).toFixed(2)}/year
                   </p>
                 </div>
                 <ul className="space-y-3 flex-1">
@@ -146,16 +131,16 @@ export default async function PricingTable() {
             <div key={product.id} className="flex flex-col border rounded-lg overflow-hidden">
               <div className="bg-gradient-to-r from-hyber-orange to-hyber-red p-6 text-white">
                 <h3 className="text-xl font-bold">{product.name}</h3>
-                <p className="mt-2 text-white">{product.description}</p>
+                <p className="mt-2 text-white">{product.shortDescription || "High-performance dedicated server"}</p>
               </div>
               <div className="p-6 flex-1 flex flex-col">
                 <div className="mb-6">
                   <p className="text-3xl font-bold">
-                    ${product.pricing.monthly.toFixed(2)}
+                    ${(product.pricing.monthly || 99.99).toFixed(2)}
                     <span className="text-sm font-normal text-muted-foreground">/month</span>
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Billed monthly or ${product.pricing.annually?.toFixed(2)}/year
+                    Billed monthly or ${(product.pricing.annually || product.pricing.monthly * 10).toFixed(2)}/year
                   </p>
                 </div>
                 <ul className="space-y-3 flex-1">
@@ -166,7 +151,7 @@ export default async function PricingTable() {
                     </li>
                   ))}
                 </ul>
-                <Button asChild className="mt-6 w-full bg-hyber-orange hover:bg-hyber-red">
+                <Button asChild className="mt-6 w-full bg-hyber-orange hover:bg-hyber-red border-b border-gray-200">
                   <Link href={`/services/dedicated?plan=${product.id}`}>Select Plan</Link>
                 </Button>
               </div>

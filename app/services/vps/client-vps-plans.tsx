@@ -17,6 +17,7 @@ interface Product {
   features: string[]
   type: string
   popular?: boolean
+  configOptionId?: number
 }
 
 export default function ClientVpsPlans() {
@@ -37,7 +38,7 @@ export default function ClientVpsPlans() {
         const data = await response.json()
 
         if (data.success && data.products) {
-          // Add popular flag to the second product
+          // Add popular flag to the second product (Ryzen AM4)
           const productsWithPopular = data.products.map((product: Product, index: number) => ({
             ...product,
             popular: index === 1, // Make the second product popular
@@ -54,63 +55,33 @@ export default function ClientVpsPlans() {
         setProducts([
           {
             id: 1,
-            name: "Starter VPS",
-            description: "Perfect for small websites and applications",
+            name: "Legacy Intel VPS",
+            description: "Base Clock: 3.60 GHz\nCores: 2\nRAM: 4GB\nStorage: 50GB SSD",
             pricing: { monthly: 19.99, annually: 199.99 },
-            features: ["2 vCPU Cores", "4GB RAM", "50GB SSD Storage", "Unmetered Bandwidth", "Full Root Access"],
+            features: ["Base Clock: 3.60 GHz", "Cores: 2", "RAM: 4GB", "Storage: 50GB SSD", "Unmetered Bandwidth"],
             type: "vps",
             popular: false,
+            configOptionId: 54,
           },
           {
             id: 2,
-            name: "Business VPS",
-            description: "Ideal for growing businesses",
+            name: "Ryzen AM4 VPS",
+            description: "Base Clock: 4.20 GHz\nCores: 4\nRAM: 8GB\nStorage: 100GB NVMe",
             pricing: { monthly: 39.99, annually: 399.99 },
-            features: [
-              "4 vCPU Cores",
-              "8GB RAM",
-              "100GB SSD Storage",
-              "Unmetered Bandwidth",
-              "Full Root Access",
-              "Daily Backups",
-            ],
+            features: ["Base Clock: 4.20 GHz", "Cores: 4", "RAM: 8GB", "Storage: 100GB NVMe", "Unmetered Bandwidth"],
             type: "vps",
             popular: true,
+            configOptionId: 53,
           },
           {
             id: 3,
-            name: "Premium VPS",
-            description: "For high-traffic websites and applications",
+            name: "Ryzen AM5 VPS",
+            description: "Base Clock: 4.50 GHz\nCores: 6\nRAM: 16GB\nStorage: 200GB NVMe",
             pricing: { monthly: 59.99, annually: 599.99 },
-            features: [
-              "6 vCPU Cores",
-              "16GB RAM",
-              "200GB SSD Storage",
-              "Unmetered Bandwidth",
-              "Full Root Access",
-              "Daily Backups",
-              "DDoS Protection",
-            ],
+            features: ["Base Clock: 4.50 GHz", "Cores: 6", "RAM: 16GB", "Storage: 200GB NVMe", "Unmetered Bandwidth"],
             type: "vps",
             popular: false,
-          },
-          {
-            id: 4,
-            name: "Enterprise VPS",
-            description: "For resource-intensive applications",
-            pricing: { monthly: 99.99, annually: 999.99 },
-            features: [
-              "8 vCPU Cores",
-              "32GB RAM",
-              "500GB SSD Storage",
-              "Unmetered Bandwidth",
-              "Full Root Access",
-              "Daily Backups",
-              "DDoS Protection",
-              "Dedicated IP Addresses",
-            ],
-            type: "vps",
-            popular: false,
+            configOptionId: 55,
           },
         ])
       } finally {
@@ -123,8 +94,8 @@ export default function ClientVpsPlans() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {[...Array(3)].map((_, i) => (
           <div key={i} className="flex flex-col border rounded-lg overflow-hidden">
             <div className="p-6">
               <Skeleton className="h-6 w-3/4 mb-2" />
@@ -154,7 +125,7 @@ export default function ClientVpsPlans() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {products.map((product) => (
         <div
           key={product.id}
@@ -167,7 +138,7 @@ export default function ClientVpsPlans() {
           )}
           <div className={`${product.popular ? "bg-hyber-orange/10 dark:bg-blue-900/20" : ""} p-6`}>
             <h3 className="text-xl font-bold">{product.name}</h3>
-            <p className="mt-2 text-sm text-muted-foreground">{product.description}</p>
+            <p className="mt-2 text-sm text-muted-foreground">Starting configuration</p>
             <div className="mt-4">
               <p className="text-3xl font-bold">
                 ${product.pricing.monthly.toFixed(2)}
@@ -193,7 +164,11 @@ export default function ClientVpsPlans() {
                 product.popular ? "bg-hyber-orange hover:bg-hyber-red" : "bg-hyber-orange hover:bg-hyber-red"
               }`}
             >
-              <Link href={`/order?product=${product.id}&type=vps`}>Select Plan</Link>
+              <Link
+                href={`/order?product=${product.id}&type=vps${product.configOptionId ? `&configid=${product.configOptionId}` : ""}`}
+              >
+                Configure & Order
+              </Link>
             </Button>
           </div>
         </div>

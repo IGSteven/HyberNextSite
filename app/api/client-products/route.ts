@@ -1,28 +1,19 @@
 import { NextResponse } from "next/server"
+import { getProducts, getProductsByType } from "@/lib/whmcs-api"
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get("type") as "vps" | "dedicated" | "cloud" | null
 
-    // Call the server-side API endpoint that will make the WHMCS API call
-    const apiUrl = new URL("/api/products", request.url)
+    let products
     if (type) {
-      apiUrl.searchParams.set("type", type)
+      products = await getProductsByType(type)
+    } else {
+      products = await getProducts()
     }
 
-    const response = await fetch(apiUrl.toString(), {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`)
-    }
-
-    const data = await response.json()
-    return NextResponse.json(data)
+    return NextResponse.json({ success: true, products })
   } catch (error) {
     console.error("Error fetching products:", error)
     return NextResponse.json({ success: false, error: "Failed to fetch products" }, { status: 500 })

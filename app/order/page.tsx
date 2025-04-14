@@ -14,91 +14,32 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle2, Server, HardDrive, Cpu } from "lucide-react"
 import Link from "next/link"
 
-// Sample product data (in a real app, this would be fetched from the API)
-const sampleProducts = {
-  vps: [
-    {
-      id: 1,
-      name: "Starter VPS",
-      description: "Perfect for small websites and applications",
-      pricing: { monthly: 19.99, annually: 199.99 },
-      features: ["2 vCPU Cores", "4GB RAM", "50GB SSD Storage", "Unmetered Bandwidth", "Full Root Access"],
-      type: "vps",
-    },
-    {
-      id: 2,
-      name: "Business VPS",
-      description: "Ideal for growing businesses",
-      pricing: { monthly: 39.99, annually: 399.99 },
-      features: [
-        "4 vCPU Cores",
-        "8GB RAM",
-        "100GB SSD Storage",
-        "Unmetered Bandwidth",
-        "Full Root Access",
-        "Daily Backups",
-      ],
-      type: "vps",
-    },
-    {
-      id: 3,
-      name: "Premium VPS",
-      description: "For high-traffic websites and applications",
-      pricing: { monthly: 59.99, annually: 599.99 },
-      features: [
-        "6 vCPU Cores",
-        "16GB RAM",
-        "200GB SSD Storage",
-        "Unmetered Bandwidth",
-        "Full Root Access",
-        "Daily Backups",
-        "DDoS Protection",
-      ],
-      type: "vps",
-    },
-    {
-      id: 4,
-      name: "Enterprise VPS",
-      description: "For resource-intensive applications",
-      pricing: { monthly: 99.99, annually: 999.99 },
-      features: [
-        "8 vCPU Cores",
-        "32GB RAM",
-        "500GB SSD Storage",
-        "Unmetered Bandwidth",
-        "Full Root Access",
-        "Daily Backups",
-        "DDoS Protection",
-        "Dedicated IP Addresses",
-      ],
-      type: "vps",
-    },
-  ],
-  dedicated: [
-    {
-      id: 101,
-      name: "Basic Dedicated",
-      description: "Entry-level dedicated server",
-      pricing: { monthly: 99.99, annually: 999.99 },
-      features: ["4 CPU Cores", "16GB RAM", "500GB SSD Storage", "Unmetered Bandwidth", "Full Hardware Control"],
-      type: "dedicated",
-    },
-    {
-      id: 102,
-      name: "Pro Dedicated",
-      description: "For resource-intensive applications",
-      pricing: { monthly: 149.99, annually: 1499.99 },
-      features: [
-        "8 CPU Cores",
-        "32GB RAM",
-        "1TB SSD Storage",
-        "Unmetered Bandwidth",
-        "Full Hardware Control",
-        "DDoS Protection",
-      ],
-      type: "dedicated",
-    },
-  ],
+interface ConfigOption {
+  id: number
+  name: string
+  options: {
+    id: number
+    name: string
+    pricing: {
+      monthly: number
+      quarterly: number
+      semiannually: number
+      annually: number
+    }
+  }[]
+}
+
+interface Product {
+  id: number
+  name: string
+  description: string
+  pricing: {
+    monthly: number
+    annually: number
+  }
+  features: string[]
+  type: "vps" | "dedicated" | "cloud"
+  configOptions?: ConfigOption[]
 }
 
 export default function OrderPage() {
@@ -106,40 +47,83 @@ export default function OrderPage() {
   const router = useRouter()
   const productId = searchParams.get("product")
   const productType = searchParams.get("type") || "vps"
+  const configId = searchParams.get("configid")
 
-  const [selectedProduct, setSelectedProduct] = useState<any>(null)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [configOptions, setConfigOptions] = useState<ConfigOption[]>([])
+  const [selectedConfigOption, setSelectedConfigOption] = useState<string>("")
   const [billingCycle, setBillingCycle] = useState("monthly")
   const [osOption, setOsOption] = useState("ubuntu")
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [orderStep, setOrderStep] = useState(1)
 
-  // Find the selected product based on URL parameters
+  // Fetch products and config options
   useEffect(() => {
-    if (productId && productType) {
-      const products = sampleProducts[productType as keyof typeof sampleProducts] || []
-      const product = products.find((p) => p.id.toString() === productId)
+    const fetchData = async () => {
+      try {
+        setIsLoading(true)
 
-      if (product) {
+        // Fetch products
+        const productsResponse = await fetch(`/api/client-products?type=${productType}`)
+        if (!productsResponse.ok) {
+          throw new Error(`Failed to fetch products: ${productsResponse.statusText}`)
+        }
+        const productsData = await productsResponse.json()
+
+        if (!productsData.success || !productsData.products) {
+          throw new Error("Failed to fetch products")
+        }
+
+        setProducts(productsData.products)
+
+        // Find the selected product
+        const product = productId
+          ? productsData.products.find((p: Product) => p.id.toString() === productId)
+          : productsData.products[0]
+
+        if (!product) {
+          throw new Error("Selected product not found")
+        }
+
         setSelectedProduct(product)
-      } else {
-        setError("Selected product not found")
+
+        // Fetch config options if product is found
+        if (product.id) {
+          const configResponse = await fetch(`/api/product-config?productId=${product.id}`)
+          if (!configResponse.ok) {
+            throw new Error(`Failed to fetch config options: ${configResponse.statusText}`)
+          }
+
+          const configData = await configResponse.json()
+          if (configData.success && configData.configOptions) {
+            setConfigOptions(configData.configOptions)
+
+            // Set default selected config option
+            if (configData.configOptions.length > 0 && configData.configOptions[0].options.length > 0) {
+              const defaultOption = configId
+                ? configData.configOptions[0].options.find((o: any) => o.id.toString() === configId)?.id.toString()
+                : configData.configOptions[0].options[0].id.toString()
+
+              setSelectedConfigOption(defaultOption || configData.configOptions[0].options[0].id.toString())
+            }
+          }
+        }
+      } catch (err: any) {
+        console.error("Error fetching data:", err)
+        setError(err.message || "An error occurred while loading product information")
+      } finally {
+        setIsLoading(false)
       }
-    } else if (!productId) {
-      // If no product is selected, default to the first VPS product
-      setSelectedProduct(sampleProducts.vps[0])
     }
-  }, [productId, productType])
+
+    fetchData()
+  }, [productId, productType, configId])
 
   const handleProductChange = (id: string) => {
-    const products = sampleProducts[productType as keyof typeof sampleProducts] || []
-    const product = products.find((p) => p.id.toString() === id)
-
-    if (product) {
-      setSelectedProduct(product)
-      // Update URL without refreshing the page
-      router.push(`/order?product=${id}&type=${productType}`)
-    }
+    // Update URL without refreshing the page
+    router.push(`/order?product=${id}&type=${productType}`)
   }
 
   const handleContinue = () => {
@@ -164,7 +148,23 @@ export default function OrderPage() {
     }
   }
 
-  if (!selectedProduct) {
+  if (isLoading) {
+    return (
+      <div className="py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold">Loading Order Details</h1>
+            <p className="text-muted-foreground mt-2">Please wait while we load your order information...</p>
+          </div>
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-hyber-orange"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !selectedProduct) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] py-12 px-4">
         <Alert variant="destructive" className="max-w-md">
@@ -177,11 +177,35 @@ export default function OrderPage() {
   }
 
   const calculateTotal = () => {
-    const basePrice = billingCycle === "monthly" ? selectedProduct.pricing.monthly : selectedProduct.pricing.annually
+    let basePrice = 0
 
-    // Add any additional costs here (e.g., add-ons, setup fees)
+    // Get base product price
+    if (selectedProduct) {
+      basePrice = billingCycle === "monthly" ? selectedProduct.pricing.monthly : selectedProduct.pricing.annually
+    }
+
+    // Add config option price if selected
+    if (selectedConfigOption && configOptions.length > 0) {
+      const configOption = configOptions[0]
+      const selectedOption = configOption.options.find((o) => o.id.toString() === selectedConfigOption)
+
+      if (selectedOption) {
+        basePrice = billingCycle === "monthly" ? selectedOption.pricing.monthly : selectedOption.pricing.annually
+      }
+    }
+
     return basePrice
   }
+
+  // Get the selected configuration option details
+  const getSelectedConfigDetails = () => {
+    if (!selectedConfigOption || configOptions.length === 0) return null
+
+    const configOption = configOptions[0]
+    return configOption.options.find((o) => o.id.toString() === selectedConfigOption)
+  }
+
+  const selectedConfig = getSelectedConfigDetails()
 
   return (
     <div className="py-12 px-4 sm:px-6 lg:px-8">
@@ -247,14 +271,33 @@ export default function OrderPage() {
                         <SelectValue placeholder="Select a product" />
                       </SelectTrigger>
                       <SelectContent>
-                        {sampleProducts[productType as keyof typeof sampleProducts]?.map((product) => (
+                        {products.map((product) => (
                           <SelectItem key={product.id} value={product.id.toString()}>
-                            {product.name} - ${product.pricing.monthly}/mo
+                            {product.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {/* Configuration Options */}
+                  {configOptions.length > 0 && configOptions[0].options.length > 0 && (
+                    <div>
+                      <Label htmlFor="config">{configOptions[0].name}</Label>
+                      <Select value={selectedConfigOption} onValueChange={setSelectedConfigOption}>
+                        <SelectTrigger id="config">
+                          <SelectValue placeholder="Select a configuration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {configOptions[0].options.map((option) => (
+                            <SelectItem key={option.id} value={option.id.toString()}>
+                              {option.name} - ${option.pricing.monthly.toFixed(2)}/mo
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
 
                   {/* Billing Cycle */}
                   <div>
@@ -267,39 +310,39 @@ export default function OrderPage() {
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="monthly" id="monthly" />
                         <Label htmlFor="monthly" className="cursor-pointer">
-                          Monthly - ${selectedProduct.pricing.monthly.toFixed(2)}/month
+                          Monthly - ${calculateTotal().toFixed(2)}/month
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="annually" id="annually" />
                         <Label htmlFor="annually" className="cursor-pointer">
-                          Annually - ${selectedProduct.pricing.annually.toFixed(2)}/year (Save{" "}
-                          {(
-                            ((selectedProduct.pricing.monthly * 12 - selectedProduct.pricing.annually) /
-                              (selectedProduct.pricing.monthly * 12)) *
-                            100
-                          ).toFixed(0)}
+                          Annually - ${(calculateTotal() * 10).toFixed(2)}/year (Save{" "}
+                          {(((calculateTotal() * 12 - calculateTotal() * 10) / (calculateTotal() * 12)) * 100).toFixed(
+                            0,
+                          )}
                           %)
                         </Label>
                       </div>
                     </RadioGroup>
                   </div>
 
-                  {/* Operating System */}
-                  <div>
-                    <Label htmlFor="os">Operating System</Label>
-                    <Select value={osOption} onValueChange={setOsOption}>
-                      <SelectTrigger id="os">
-                        <SelectValue placeholder="Select an operating system" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ubuntu">Ubuntu 22.04 LTS</SelectItem>
-                        <SelectItem value="almalinux">AlmaLinux 9</SelectItem>
-                        <SelectItem value="debian">Debian 11</SelectItem>
-                        <SelectItem value="windows">Windows Server 2022</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {/* Operating System - Only show for dedicated servers */}
+                  {productType !== "vps" && (
+                    <div>
+                      <Label htmlFor="os">Operating System</Label>
+                      <Select value={osOption} onValueChange={setOsOption}>
+                        <SelectTrigger id="os">
+                          <SelectValue placeholder="Select an operating system" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ubuntu">Ubuntu 22.04 LTS</SelectItem>
+                          <SelectItem value="almalinux">AlmaLinux 9</SelectItem>
+                          <SelectItem value="debian">Debian 11</SelectItem>
+                          <SelectItem value="windows">Windows Server 2022</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter className="flex justify-between">
                   <Button variant="outline" asChild>
@@ -321,13 +364,14 @@ export default function OrderPage() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
                     <span>{selectedProduct.name}</span>
-                    <span>
-                      $
-                      {billingCycle === "monthly"
-                        ? selectedProduct.pricing.monthly.toFixed(2)
-                        : selectedProduct.pricing.annually.toFixed(2)}
-                    </span>
+                    <span>${calculateTotal().toFixed(2)}</span>
                   </div>
+                  {selectedConfig && (
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>{selectedConfig.name}</span>
+                      <span>Included</span>
+                    </div>
+                  )}
                   <Separator />
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
@@ -363,51 +407,51 @@ export default function OrderPage() {
                 <CardContent className="space-y-6">
                   <div className="bg-muted p-4 rounded-lg">
                     <h3 className="text-lg font-semibold mb-4">{selectedProduct.name}</h3>
+                    {selectedConfig && <p className="text-sm mb-4">Configuration: {selectedConfig.name}</p>}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-start">
-                        <Cpu className="h-5 w-5 text-hyber-orange mr-2 mt-0.5" />
-                        <div>
-                          <p className="font-medium">CPU</p>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedProduct.features.find((f: string) => f.includes("CPU") || f.includes("vCPU"))}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start">
-                        <Server className="h-5 w-5 text-hyber-orange mr-2 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Memory</p>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedProduct.features.find((f: string) => f.includes("RAM"))}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-start">
-                        <HardDrive className="h-5 w-5 text-hyber-orange mr-2 mt-0.5" />
-                        <div>
-                          <p className="font-medium">Storage</p>
-                          <p className="text-sm text-muted-foreground">
-                            {selectedProduct.features.find((f: string) => f.includes("SSD") || f.includes("Storage"))}
-                          </p>
-                        </div>
-                      </div>
+                      {selectedProduct.features.slice(0, 3).map((feature, index) => {
+                        const [label, value] = feature.includes(":")
+                          ? feature.split(":").map((s) => s.trim())
+                          : [feature, ""]
+                        return (
+                          <div key={index} className="flex items-start">
+                            {label.toLowerCase().includes("cpu") || label.toLowerCase().includes("core") ? (
+                              <Cpu className="h-5 w-5 text-hyber-orange mr-2 mt-0.5" />
+                            ) : label.toLowerCase().includes("ram") ? (
+                              <Server className="h-5 w-5 text-hyber-orange mr-2 mt-0.5" />
+                            ) : label.toLowerCase().includes("storage") ||
+                              label.toLowerCase().includes("ssd") ||
+                              label.toLowerCase().includes("nvme") ? (
+                              <HardDrive className="h-5 w-5 text-hyber-orange mr-2 mt-0.5" />
+                            ) : (
+                              <CheckCircle2 className="h-5 w-5 text-hyber-orange mr-2 mt-0.5" />
+                            )}
+                            <div>
+                              <p className="font-medium">{label}</p>
+                              {value && <p className="text-sm text-muted-foreground">{value}</p>}
+                            </div>
+                          </div>
+                        )
+                      })}
                     </div>
 
                     <Separator className="my-4" />
 
                     <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm">Operating System:</span>
-                        <span className="text-sm font-medium">
-                          {osOption === "ubuntu"
-                            ? "Ubuntu 22.04 LTS"
-                            : osOption === "almalinux"
-                              ? "AlmaLinux 9"
-                              : osOption === "debian"
-                                ? "Debian 11"
-                                : "Windows Server 2022"}
-                        </span>
-                      </div>
+                      {productType !== "vps" && (
+                        <div className="flex justify-between">
+                          <span className="text-sm">Operating System:</span>
+                          <span className="text-sm font-medium">
+                            {osOption === "ubuntu"
+                              ? "Ubuntu 22.04 LTS"
+                              : osOption === "almalinux"
+                                ? "AlmaLinux 9"
+                                : osOption === "debian"
+                                  ? "Debian 11"
+                                  : "Windows Server 2022"}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex justify-between">
                         <span className="text-sm">Billing Cycle:</span>
                         <span className="text-sm font-medium">
@@ -420,21 +464,12 @@ export default function OrderPage() {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Additional Features</h3>
                     <ul className="space-y-2">
-                      {selectedProduct.features
-                        .filter(
-                          (f: string) =>
-                            !f.includes("CPU") &&
-                            !f.includes("vCPU") &&
-                            !f.includes("RAM") &&
-                            !f.includes("SSD") &&
-                            !f.includes("Storage"),
-                        )
-                        .map((feature: string, index: number) => (
-                          <li key={index} className="flex items-start">
-                            <CheckCircle2 className="h-5 w-5 text-hyber-orange mr-2" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
+                      {selectedProduct.features.slice(3).map((feature, index) => (
+                        <li key={index} className="flex items-start">
+                          <CheckCircle2 className="h-5 w-5 text-hyber-orange mr-2" />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 </CardContent>
@@ -458,13 +493,14 @@ export default function OrderPage() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
                     <span>{selectedProduct.name}</span>
-                    <span>
-                      $
-                      {billingCycle === "monthly"
-                        ? selectedProduct.pricing.monthly.toFixed(2)
-                        : selectedProduct.pricing.annually.toFixed(2)}
-                    </span>
+                    <span>${calculateTotal().toFixed(2)}</span>
                   </div>
+                  {selectedConfig && (
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>{selectedConfig.name}</span>
+                      <span>Included</span>
+                    </div>
+                  )}
                   <Separator />
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
@@ -608,13 +644,14 @@ export default function OrderPage() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
                     <span>{selectedProduct.name}</span>
-                    <span>
-                      $
-                      {billingCycle === "monthly"
-                        ? selectedProduct.pricing.monthly.toFixed(2)
-                        : selectedProduct.pricing.annually.toFixed(2)}
-                    </span>
+                    <span>${calculateTotal().toFixed(2)}</span>
                   </div>
+                  {selectedConfig && (
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>{selectedConfig.name}</span>
+                      <span>Included</span>
+                    </div>
+                  )}
                   <Separator />
                   <div className="flex justify-between font-bold">
                     <span>Total</span>
