@@ -1,4 +1,4 @@
-import fs from "fs/promises"
+import { readFileSync, writeFileSync } from "fs"
 import path from "path"
 import type { BlogPost, Category, Author } from "./blog-types"
 
@@ -8,7 +8,8 @@ const DATA_FILE_PATH = path.join(process.cwd(), "data", "blog-data.json")
 // Function to read blog data from the JSON file
 export async function getBlogData() {
   try {
-    const data = await fs.readFile(DATA_FILE_PATH, "utf8")
+    // Use synchronous version which works better with Next.js
+    const data = readFileSync(DATA_FILE_PATH, "utf8")
     const parsedData = JSON.parse(data)
 
     // Ensure the data has the expected structure
@@ -27,7 +28,8 @@ export async function getBlogData() {
 // Function to write blog data to the JSON file
 export async function writeBlogData(data: any) {
   try {
-    await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2), "utf8")
+    // Use synchronous version which works better with Next.js
+    writeFileSync(DATA_FILE_PATH, JSON.stringify(data, null, 2), "utf8")
     return true
   } catch (error) {
     console.error("Error writing blog data:", error)

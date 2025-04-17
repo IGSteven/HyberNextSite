@@ -8,6 +8,9 @@ export async function getAllCategories(): Promise<KBCategory[]> {
   return kbData.categories
 }
 
+// Alias for getAllCategories to maintain compatibility
+export const getCategories = getAllCategories;
+
 // Get root categories (categories without a parent)
 export async function getRootCategories(): Promise<KBCategory[]> {
   return kbData.categories.filter((category) => !category.parentId)
