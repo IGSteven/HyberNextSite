@@ -29,11 +29,20 @@ export async function GET() {
     const incidentsData = await incidentsResponse.json()
 
     // Return both sets of data
-    return NextResponse.json({
-      success: true,
-      status: statusData,
-      incidents: incidentsData,
-    })
+    return new NextResponse(
+      JSON.stringify({
+        success: true,
+        status: statusData,
+        incidents: incidentsData,
+      }),
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      },
+    )
   } catch (error) {
     console.error("Error fetching Instatus data:", error)
     return NextResponse.json(

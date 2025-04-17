@@ -260,20 +260,39 @@ async function makeApiRequest(action: string, params: Record<string, any> = {}) 
       formData.append(key, String(value))
     })
 
+    // Log the API URL and parameters for debugging
+    console.log(`Making API request to: ${apiUrl}`)
+    console.log("API parameters:", Object.fromEntries(formData.entries()))
+
     // Make the API request
     const response = await fetch(apiUrl, {
       method: "POST",
       body: formData,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36", // Add a User-Agent header
+      },
       // Add a timeout to prevent hanging requests
       signal: AbortSignal.timeout(10000), // 10 second timeout
     })
 
     if (!response.ok) {
       console.error(`WHMCS API request failed with status ${response.status}`)
+      if (response.status === 403) {
+        throw new Error(
+          "API request failed with status 403: Forbidden. Check your API credentials and ensure the IP address of this server is whitelisted in WHMCS. Also, verify that the API identifier has the necessary permissions in WHMCS.",
+        )
+      }
       throw new Error(`API request failed with status ${response.status}`)
     }
 
-    const data = await response.json()
+    let data
+    try {
+      data = await response.json()
+    } catch (jsonError: any) {
+      console.error("Failed to parse JSON response:", jsonError)
+      throw new Error("Failed to parse JSON response from WHMCS API")
+    }
 
     // Check if the API returned an error
     if (data.result === "error") {
@@ -282,7 +301,7 @@ async function makeApiRequest(action: string, params: Record<string, any> = {}) 
     }
 
     return data
-  } catch (error) {
+  } catch (error: any) {
     console.error("WHMCS API request failed:", error)
     throw error
   }
@@ -316,7 +335,7 @@ function extractFeaturesFromDescription(description: string): string[] {
 /**
  * Get configuration options for a product
  */
-export async function getProductConfigOptions(productId: number): Promise<ConfigOption[]> {
+async function getProductConfigOptions(productId: number): Promise<ConfigOption[]> {
   try {
     const response = await makeApiRequest("GetProductConfigOptions", {
       pid: productId,
@@ -351,8 +370,11 @@ export async function getProductConfigOptions(productId: number): Promise<Config
     }
 
     return []
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Failed to fetch config options for product ${productId}:`, error)
+    if (error.message.includes("status 403")) {
+      console.error("403 Error: Check your API credentials and permissions.")
+    }
 
     // Find the product in sample data
     for (const type in sampleProducts) {
@@ -369,7 +391,7 @@ export async function getProductConfigOptions(productId: number): Promise<Config
 /**
  * Get all products from WHMCS
  */
-export async function getProducts(): Promise<Product[]> {
+async function getProducts(): Promise<Product[]> {
   try {
     const response = await makeApiRequest("GetProducts")
 
@@ -428,8 +450,14 @@ export async function getProducts(): Promise<Product[]> {
     // If API call fails or returns no products, use sample data
     console.warn("No products returned from WHMCS API. Using sample data.")
     return [...sampleProducts.vps, ...sampleProducts.dedicated, ...sampleProducts.cloud]
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to fetch products:", error)
+    if (error.message.includes("status 403")) {
+      console.error("403 Error: Check your API credentials and permissions.")
+      throw new Error(
+        "Failed to fetch products: Forbidden. Check your API credentials and ensure the IP address of this server is whitelisted in WHMCS. Also, verify that the API identifier has the necessary permissions in WHMCS.",
+      )
+    }
     // Return sample data as fallback
     return [...sampleProducts.vps, ...sampleProducts.dedicated, ...sampleProducts.cloud]
   }
@@ -438,7 +466,7 @@ export async function getProducts(): Promise<Product[]> {
 /**
  * Get products by type (vps, dedicated, cloud)
  */
-export async function getProductsByType(type: "vps" | "dedicated" | "cloud"): Promise<Product[]> {
+async function getProductsByType(type: "vps" | "dedicated" | "cloud"): Promise<Product[]> {
   try {
     const products = await getProducts()
     let filteredProducts: Product[] = []
@@ -458,8 +486,14 @@ export async function getProductsByType(type: "vps" | "dedicated" | "cloud"): Pr
     }
 
     return filteredProducts
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Failed to fetch ${type} products:`, error)
+    if (error.message.includes("status 403")) {
+      console.error("403 Error: Check your API credentials and permissions.")
+      throw new Error(
+        `Failed to fetch ${type} products: Forbidden. Check your API credentials and ensure the IP address of this server is whitelisted in WHMCS. Also, verify that the API identifier has the necessary permissions in WHMCS.`,
+      )
+    }
     // Return sample data as fallback
     return sampleProducts[type] || []
   }
@@ -488,7 +522,7 @@ function determineProductType(name: string, groupId: string): "vps" | "dedicated
 /**
  * Authenticate a user with WHMCS
  */
-export async function loginUser(email: string, password: string): Promise<LoginResponse> {
+async function loginUser(email: string, password: string): Promise<LoginResponse> {
   try {
     const response = await makeApiRequest("ValidateLogin", {
       email,
@@ -522,7 +556,7 @@ export async function loginUser(email: string, password: string): Promise<LoginR
 /**
  * Register a new user in WHMCS
  */
-export async function registerUser(userData: Omit<User, "id">): Promise<RegisterResponse> {
+async function registerUser(userData: Omit<User, "id">): Promise<RegisterResponse> {
   try {
     const response = await makeApiRequest("AddClient", {
       firstname: userData.firstName,
@@ -562,7 +596,7 @@ export async function registerUser(userData: Omit<User, "id">): Promise<Register
 /**
  * Get user details from WHMCS
  */
-export async function getUserDetails(userId: number): Promise<User | null> {
+async function getUserDetails(userId: number): Promise<User | null> {
   try {
     const response = await makeApiRequest("GetClientsDetails", {
       clientid: userId,
@@ -590,3 +624,5 @@ export async function getUserDetails(userId: number): Promise<User | null> {
     return null
   }
 }
+
+export { getProducts, getProductsByType, getProductConfigOptions, loginUser, registerUser, getUserDetails }

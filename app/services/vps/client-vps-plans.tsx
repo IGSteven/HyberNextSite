@@ -47,9 +47,13 @@ export default function ClientVpsPlans() {
         } else {
           throw new Error(data.error || "Failed to fetch products")
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching VPS products:", error)
-        setError("Failed to load products. Please try again later.")
+        let errorMessage = "Failed to load products. Please try again later."
+        if (error.message.includes("status 403")) {
+          errorMessage = "Failed to load products: Forbidden. Check your API credentials and permissions."
+        }
+        setError(errorMessage)
 
         // Use sample data as fallback
         setProducts([

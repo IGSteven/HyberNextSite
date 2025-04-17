@@ -37,7 +37,13 @@ export async function POST(request: Request) {
     // Write back to file
     fs.writeFileSync(dataFilePath, JSON.stringify(blogData, null, 2))
 
-    return NextResponse.json({ success: true, category: newCategory })
+    return new NextResponse(JSON.stringify({ success: true, category: newCategory }), {
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      },
+    })
   } catch (error) {
     console.error("Error creating category:", error)
     return NextResponse.json({ error: "Failed to create category" }, { status: 500 })

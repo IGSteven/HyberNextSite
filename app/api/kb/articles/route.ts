@@ -5,10 +5,19 @@ export async function GET() {
   try {
     const articles = await getPublishedArticles()
 
-    return NextResponse.json({
-      success: true,
-      articles,
-    })
+    return new NextResponse(
+      JSON.stringify({
+        success: true,
+        articles,
+      }),
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+      },
+    )
   } catch (error) {
     console.error("Error fetching KB articles:", error)
     return NextResponse.json(
