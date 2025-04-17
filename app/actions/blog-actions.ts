@@ -1,3 +1,5 @@
+'use server';
+
 import { revalidatePath } from "next/cache"
 import fs from "fs/promises"
 import path from "path"

@@ -1,5 +1,20 @@
 import { NextResponse } from "next/server"
-import { getProductConfigOptions } from "@/lib/whmcs-api"
+import { apicall } from "@/lib/whmcs"
+
+async function getProductConfigOptions(productId: number) {
+  const params = {
+    action: "GetProductConfigOptions",
+    pid: productId,
+  };
+
+  const request = await apicall(params);
+  
+  if (request.result !== "success") {
+    throw new Error(request.message);
+  }
+  
+  return request.configoptions;
+}
 
 export async function GET(request: Request) {
   try {

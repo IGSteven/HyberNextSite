@@ -34,5 +34,3 @@ export default async function EditCategoryPage({ params }: { params: { id: strin
     </div>
   )
 }
-\
-### 5. Fix the author avatar styling:
