@@ -16,7 +16,8 @@ import { AlertCircle, Save, ArrowLeft } from "lucide-react"
 import type { BlogPost, Category, Author } from "@/lib/blog-types"
 import { createPost, updatePost } from "@/app/actions/blog-actions"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getAuthors } from "@/lib/blog-utils"
+// Remove the direct import from blog-utils
+// import { getAuthors } from "@/lib/blog-utils"
 
 interface PostFormProps {
   post?: BlogPost
@@ -35,10 +36,27 @@ export default function PostFormClient({ post, categories, isEdit = false }: Pos
 
   useEffect(() => {
     const fetchAuthors = async () => {
-      const authorList = await getAuthors()
-      setAuthors(authorList)
+      try {
+        // Use fetch to get authors from an API endpoint instead of calling server-only function directly
+        const response = await fetch('/api/admin/blog/authors');
+        if (!response.ok) {
+          throw new Error('Failed to fetch authors');
+        }
+        const data = await response.json();
+        setAuthors(data.authors || []);
+      } catch (error) {
+        console.error('Error fetching authors:', error);
+        // Set a default author if the fetch fails
+        setAuthors([{
+          id: "default",
+          name: "HyberHost Team",
+          slug: "hyberhost-team",
+          bio: "The official HyberHost team account.",
+          avatar: "/double-h-monogram.png",
+        }]);
+      }
     }
-    fetchAuthors()
+    fetchAuthors();
   }, [])
 
   useEffect(() => {

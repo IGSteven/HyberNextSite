@@ -1,23 +1,21 @@
-import { readFileSync, writeFileSync } from "fs"
-import path from "path"
+// Special handling for server-side only imports in Next.js
+// This tells Next.js that this code should only run on the server
+import 'server-only';
 import type { BlogPost, Category, Author } from "./blog-types"
+import path from "path"
 
-// Path to the blog data file
-const DATA_FILE_PATH = path.join(process.cwd(), "data", "blog-data.json")
+// Use imported blog data directly
+import blogData from "@/data/blog-data.json"
 
-// Function to read blog data from the JSON file
+// Function to read blog data (server-side only)
 export async function getBlogData() {
   try {
-    // Use synchronous version which works better with Next.js
-    const data = readFileSync(DATA_FILE_PATH, "utf8")
-    const parsedData = JSON.parse(data)
-
-    // Ensure the data has the expected structure
+    // Return the imported data directly
     return {
-      posts: parsedData.posts || [],
-      categories: parsedData.categories || [],
-      authors: parsedData.authors || [],
-    }
+      posts: blogData.posts || [],
+      categories: blogData.categories || [],
+      authors: blogData.authors || [],
+    };
   } catch (error) {
     console.error("Error reading blog data:", error)
     // Return a default structure
@@ -25,15 +23,19 @@ export async function getBlogData() {
   }
 }
 
-// Function to write blog data to the JSON file
+// Function to write blog data to the JSON file (server-side only)
 export async function writeBlogData(data: any) {
   try {
-    // Use synchronous version which works better with Next.js
-    writeFileSync(DATA_FILE_PATH, JSON.stringify(data, null, 2), "utf8")
-    return true
+    // Server-side only code using dynamic imports
+    if (typeof window === 'undefined') {
+      const fs = await import('fs');
+      const fullPath = path.join(process.cwd(), "data", "blog-data.json");
+      fs.writeFileSync(fullPath, JSON.stringify(data, null, 2), "utf8");
+    }
+    return true;
   } catch (error) {
     console.error("Error writing blog data:", error)
-    return false
+    return false;
   }
 }
 
