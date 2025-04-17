@@ -1,17 +1,26 @@
 import { NextResponse } from "next/server"
-import { getProducts, getProductsByType } from "@/lib/whmcs-api"
+import { getProducts } from "@/lib/whmcs/products"
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const type = searchParams.get("type") as "vps" | "dedicated" | "cloud" | null
 
-    let products
-    if (type) {
-      products = await getProductsByType(type)
-    } else {
-      products = await getProducts()
+    let gid: number; // Group ID for the product type
+    switch (type) {
+      case "vps": gid = 19; break;
+      case "dedicated": gid = 14; break;
+      case "cloud": gid = 17; break;
+      default: throw new Error("Invalid product type");
     }
+
+    // Fetch products based on the type
+    let products = await getProducts({ gid });
+    if (!products) {
+      return NextResponse.json({ success: false, error: "No products found" }, { status: 404 })
+    }
+
+    console.log("Fetched products:", products)
 
     return new NextResponse(JSON.stringify({ success: true, products }), {
       headers: {

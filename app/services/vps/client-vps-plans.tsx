@@ -5,25 +5,29 @@ import { CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useSearchParams } from "next/navigation"
+import { getCurrencyFromHostname } from "@/lib/currency-utils"
 
-interface Product {
-  id: number
-  name: string
-  description: string
-  pricing: {
-    monthly: number
-    annually: number
-  }
-  features: string[]
-  type: string
-  popular?: boolean
-  configOptionId?: number
-}
+// Product Type
+import { Product } from "@/lib/whmcs/products"
 
 export default function ClientVpsPlans() {
+  const searchParams = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [hostname, setHostname] = useState("")
+  
+  // Get domain-based default currency
+  useEffect(() => {
+    // Set hostname once the component mounts on client-side
+    setHostname(window.location.hostname)
+  }, [])
+  
+  // Get currency from URL query parameter or from domain
+  const currencyFromQuery = searchParams.get("currency")
+  const domainDefaultCurrency = hostname ? getCurrencyFromHostname(hostname) : "USD"
+  const currency = currencyFromQuery || domainDefaultCurrency
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -44,6 +48,7 @@ export default function ClientVpsPlans() {
             popular: index === 1, // Make the second product popular
           }))
           setProducts(productsWithPopular)
+          console.log("Products loaded:", productsWithPopular)
         } else {
           throw new Error(data.error || "Failed to fetch products")
         }
@@ -61,7 +66,12 @@ export default function ClientVpsPlans() {
             id: 1,
             name: "Legacy Intel VPS",
             description: "Base Clock: 3.60 GHz\nCores: 2\nRAM: 4GB\nStorage: 50GB SSD",
-            pricing: { monthly: 19.99, annually: 199.99 },
+            pricing: { 
+              USD: { monthly: 19.99, annually: 199.99, prefix: "$" },
+              GBP: { monthly: 15.99, annually: 159.99, prefix: "£" },
+              EUR: { monthly: 18.99, annually: 189.99, prefix: "€" },
+              CAD: { monthly: 26.99, annually: 269.99, prefix: "C$" }
+            },
             features: ["Base Clock: 3.60 GHz", "Cores: 2", "RAM: 4GB", "Storage: 50GB SSD", "Unmetered Bandwidth"],
             type: "vps",
             popular: false,
@@ -71,7 +81,12 @@ export default function ClientVpsPlans() {
             id: 2,
             name: "Ryzen AM4 VPS",
             description: "Base Clock: 4.20 GHz\nCores: 4\nRAM: 8GB\nStorage: 100GB NVMe",
-            pricing: { monthly: 39.99, annually: 399.99 },
+            pricing: { 
+              USD: { monthly: 39.99, annually: 399.99, prefix: "$" },
+              GBP: { monthly: 31.99, annually: 319.99, prefix: "£" },
+              EUR: { monthly: 36.99, annually: 369.99, prefix: "€" },
+              CAD: { monthly: 53.99, annually: 539.99, prefix: "C$" }
+            },
             features: ["Base Clock: 4.20 GHz", "Cores: 4", "RAM: 8GB", "Storage: 100GB NVMe", "Unmetered Bandwidth"],
             type: "vps",
             popular: true,
@@ -81,7 +96,12 @@ export default function ClientVpsPlans() {
             id: 3,
             name: "Ryzen AM5 VPS",
             description: "Base Clock: 4.50 GHz\nCores: 6\nRAM: 16GB\nStorage: 200GB NVMe",
-            pricing: { monthly: 59.99, annually: 599.99 },
+            pricing: { 
+              USD: { monthly: 59.99, annually: 599.99, prefix: "$" },
+              GBP: { monthly: 47.99, annually: 479.99, prefix: "£" },
+              EUR: { monthly: 54.99, annually: 549.99, prefix: "€" },
+              CAD: { monthly: 79.99, annually: 799.99, prefix: "C$" }
+            },
             features: ["Base Clock: 4.50 GHz", "Cores: 6", "RAM: 16GB", "Storage: 200GB NVMe", "Unmetered Bandwidth"],
             type: "vps",
             popular: false,
@@ -132,7 +152,7 @@ export default function ClientVpsPlans() {
     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
       {products.map((product) => (
         <div
-          key={product.id}
+          key={product.id || product.pid}
           className={`flex flex-col border rounded-lg overflow-hidden ${
             product.popular ? "ring-2 ring-hyber-orange shadow-lg" : ""
           }`}
@@ -145,22 +165,29 @@ export default function ClientVpsPlans() {
             <p className="mt-2 text-sm text-muted-foreground">Starting configuration</p>
             <div className="mt-4">
               <p className="text-3xl font-bold">
-                ${product.pricing.monthly.toFixed(2)}
+                {product.pricing?.[currency].prefix}{product.pricing?.[currency]?.monthly || "N/A"}
                 <span className="text-sm font-normal text-muted-foreground">/month</span>
               </p>
               <p className="text-sm text-muted-foreground mt-1">
-                Billed monthly or ${product.pricing.annually?.toFixed(2)}/year
+                Billed monthly or {product.pricing?.[currency].prefix}{product.pricing?.[currency]?.annually || "N/A"}/year
               </p>
             </div>
           </div>
           <div className="p-6 flex-1 flex flex-col">
             <ul className="space-y-3 flex-1">
-              {product.features.map((feature, index) => (
-                <li key={index} className="flex items-start">
+              {Array.isArray(product.features) && product.features.length > 0 ? (
+                product.features.map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-hyber-orange mr-2" />
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))
+              ) : (
+                <li className="flex items-start">
                   <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-hyber-orange mr-2" />
-                  <span className="text-sm">{feature}</span>
+                  <span className="text-sm">Basic VPS Features</span>
                 </li>
-              ))}
+              )}
             </ul>
             <Button
               asChild
@@ -169,7 +196,9 @@ export default function ClientVpsPlans() {
               }`}
             >
               <Link
-                href={`/order?product=${product.id}&type=vps${product.configOptionId ? `&configid=${product.configOptionId}` : ""}`}
+                href={`/order?product=${product.id || product.pid}&type=vps${
+                  product.configOptionId ? `&configid=${product.configOptionId}` : ""
+                }`}
               >
                 Configure & Order
               </Link>

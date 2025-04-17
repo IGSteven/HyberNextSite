@@ -16,6 +16,7 @@ export interface Product {
     slug: string;
     "product-url": string;
     description: string;
+    features: string[]; // Changed from Map<string, string> to string[]
     module: string;
     paytype: string;
     allowqty: number;
@@ -127,5 +128,32 @@ export async function getProducts(filters: Record<string, any> = {}) {
         throw new Error(request.message);
     }
 
+    const products = request.products.product as Product[];
+
+    for (const product of products) {
+        // Extract features from product description and convert to array format
+        const featureList: string[] = [];
+        const descriptionLines: string[] = [];
+        const lines = product.description.split(/\r?\n/);
+        
+        for (const line of lines) {
+            const trimmedLine = line.trim();
+            // Skip empty lines
+            if (trimmedLine) {
+                // Check if line has a colon (typical for key-value pairs)
+                if (trimmedLine.includes(":")) {
+                    featureList.push(trimmedLine);
+                } else {
+                    // Keep non-feature lines in the description
+                    descriptionLines.push(trimmedLine);
+                }
+            }
+        }
+        
+        // Update product with filtered features and cleaned description
+        product.features = featureList;
+        product.description = descriptionLines.join("\n");
+    }
+    
     return request.products.product as Product[];
 }

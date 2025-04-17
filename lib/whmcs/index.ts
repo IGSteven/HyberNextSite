@@ -30,8 +30,9 @@ export async function apicall(params: any) {
     params.secret = WHMCS_API_SECRET
     params.responsetype = "json"
 
-    // Log the API request
-    console.log("WHMCS Request:", params);
+    // Log the API request without sensitive information
+    const { identifier, secret, ...safeParams } = params;
+    console.log("WHMCS Request:", safeParams);
 
     // Make the API request
     const response = await fetch(apiurl, {
