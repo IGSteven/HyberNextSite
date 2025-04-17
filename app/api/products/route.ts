@@ -1,5 +1,18 @@
 import { NextResponse } from "next/server"
-import { getProducts, getProductsByType } from "@/lib/whmcs-api"
+import { getProductsCached } from "@/lib/whmcs/products"
+
+// Function to get products by type with appropriate gid mapping
+async function getProductsByTypeCached(type: "vps" | "dedicated" | "cloud") {
+  let gid: number;
+  switch (type) {
+    case "vps": gid = 19; break;
+    case "dedicated": gid = 14; break;
+    case "cloud": gid = 17; break;
+    default: throw new Error("Invalid product type");
+  }
+  
+  return await getProductsCached({ gid });
+}
 
 export async function GET(request: Request) {
   try {
@@ -8,9 +21,9 @@ export async function GET(request: Request) {
 
     let products
     if (type) {
-      products = await getProductsByType(type)
+      products = await getProductsByTypeCached(type)
     } else {
-      products = await getProducts()
+      products = await getProductsCached()
     }
 
     return new NextResponse(JSON.stringify({ success: true, products }), {

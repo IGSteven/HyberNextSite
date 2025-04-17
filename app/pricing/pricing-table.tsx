@@ -7,6 +7,38 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { getCurrencyFromHostname, CURRENCY_SYMBOLS } from "@/lib/currency-utils"
 
+// Interface for API responses
+interface ApiResponse {
+  success: boolean;
+  products?: Product[];
+  error?: string;
+}
+
+// Product interface needed for component
+interface Product {
+  pid: number;
+  gid: number;
+  type: string;
+  name: string;
+  slug: string;
+  "product-url": string;
+  description: string;
+  features: string[];
+  module: string;
+  paytype: string;
+  allowqty: number;
+  quantity_available: number;
+  pricing: Record<string, CurrencyPricing>;
+}
+
+interface CurrencyPricing {
+  prefix: string;
+  suffix: string;
+  monthly: string;
+  annually: string;
+  [key: string]: string;
+}
+
 // Cookie name constant
 const CURRENCY_COOKIE_NAME = "preferred_currency"
 const COOKIE_EXPIRES_DAYS = 90
@@ -35,11 +67,22 @@ const setCookie = (name: string, value: string, days: number): void => {
   document.cookie = name + "=" + value + expires + "; path=/; SameSite=Lax"
 }
 
+// Interface for transformed product data
+interface UIProduct {
+  id: number;
+  name: string;
+  shortDescription: string;
+  pricing: Record<string, { monthly: number; annually: number; prefix: string }>;
+  features: string[];
+  type: string;
+}
+
 export default function PricingTable() {
   const searchParams = useSearchParams()
-  const [products, setProducts] = useState<any[]>([])
+  const [products, setProducts] = useState<UIProduct[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [hostname, setHostname] = useState("")
+  const [error, setError] = useState<string | null>(null)
   
   // Get domain-based default currency
   useEffect(() => {
@@ -67,28 +110,83 @@ export default function PricingTable() {
     }
   }, [currencyFromQuery, domainDefaultCurrency])
   
+  // Transform WHMCS product to UI product format
+  const transformProduct = (product: Product, type: string): UIProduct => {
+    // Extract pricing information
+    const pricingByCurrency: Record<string, { monthly: number; annually: number; prefix: string }> = {};
+    
+    // Process each currency in the product's pricing
+    // Use minPricing if available (which includes required options), otherwise fall back to standard pricing
+    const pricingSource = product.minPricing || product.pricing;
+    
+    Object.entries(pricingSource).forEach(([currencyCode, pricingInfo]) => {
+      pricingByCurrency[currencyCode] = {
+        monthly: parseFloat(pricingInfo.monthly) || 0,
+        annually: parseFloat(pricingInfo.annually) || 0,
+        prefix: pricingInfo.prefix || "$"
+      };
+    });
+    
+    return {
+      id: product.pid,
+      name: product.name,
+      shortDescription: product.description || `High-performance ${type}`,
+      pricing: pricingByCurrency,
+      features: product.features || [],
+      type
+    };
+  };
+  
   useEffect(() => {
-    // Fetch products from API or use sample data
+    // Fetch products from our server-side API endpoint instead of directly calling WHMCS API
     const fetchProducts = async () => {
       try {
-        setIsLoading(true)
-        // TODO: In production, replace with API call to get products
-        // For now, use sample data
-        setProducts(getSampleData())
+        setIsLoading(true);
+        setError(null);
+        
+        // Fetch VPS products (gid: 19) from our server API
+        const vpsResponse = await fetch(`/api/products/by-group?gid=19`);
+        const vpsData: ApiResponse = await vpsResponse.json();
+        
+        if (!vpsData.success || !vpsData.products) {
+          throw new Error(vpsData.error || "Failed to fetch VPS products");
+        }
+        
+        // Fetch Dedicated Server products (gid: 14) from our server API
+        const dedicatedResponse = await fetch(`/api/products/by-group?gid=14`);
+        const dedicatedData: ApiResponse = await dedicatedResponse.json();
+        
+        if (!dedicatedData.success || !dedicatedData.products) {
+          throw new Error(dedicatedData.error || "Failed to fetch Dedicated Server products");
+        }
+        
+        // Transform products to the format expected by the UI
+        const transformedVpsProducts = vpsData.products.map(product => 
+          transformProduct(product, 'vps')
+        );
+        
+        const transformedDedicatedProducts = dedicatedData.products.map(product => 
+          transformProduct(product, 'dedicated')
+        );
+        
+        // Combine all products
+        setProducts([...transformedVpsProducts, ...transformedDedicatedProducts]);
       } catch (error) {
-        console.error("Error loading products:", error)
-        setProducts(getSampleData())
+        console.error("Error loading products:", error);
+        setError("Failed to load product information. Using fallback data.");
+        // Use sample data as fallback
+        setProducts(getSampleData());
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
     
-    fetchProducts()
-  }, [])
+    fetchProducts();
+  }, []);
 
-  const getSampleData = () => {
+  const getSampleData = (): UIProduct[] => {
     // Sample data with multi-currency support
-    const sampleVpsPlans = [
+    const sampleVpsPlans: UIProduct[] = [
       {
         id: 1,
         name: "Legacy Intel VPS",
@@ -109,7 +207,8 @@ export default function PricingTable() {
         pricing: {
           USD: { monthly: 39.99, annually: 399.99, prefix: "$" },
           GBP: { monthly: 31.99, annually: 319.99, prefix: "£" },
-          EUR: { monthly: 36.99, annually: 369.99, prefix: "€" }
+          EUR: { monthly: 36.99, annually: 369.99, prefix: "€" },
+          CAD: { monthly: 0, annually: 0, prefix: "$" } // Adding CAD to match interface
         },
         features: ["Base Clock: 4.20 GHz", "Cores: 4", "RAM: 8GB", "Storage: 100GB NVMe", "Unmetered Bandwidth"],
         type: "vps",
@@ -121,14 +220,15 @@ export default function PricingTable() {
         pricing: {
           USD: { monthly: 59.99, annually: 599.99, prefix: "$" },
           GBP: { monthly: 47.99, annually: 479.99, prefix: "£" },
-          EUR: { monthly: 54.99, annually: 549.99, prefix: "€" }
+          EUR: { monthly: 54.99, annually: 549.99, prefix: "€" },
+          CAD: { monthly: 0, annually: 0, prefix: "$" } // Adding CAD to match interface
         },
         features: ["Base Clock: 4.50 GHz", "Cores: 6", "RAM: 16GB", "Storage: 200GB NVMe", "Unmetered Bandwidth"],
         type: "vps",
       },
     ]
 
-    const sampleDedicatedPlans = [
+    const sampleDedicatedPlans: UIProduct[] = [
       {
         id: 4,
         name: "Basic Dedicated",
@@ -149,7 +249,8 @@ export default function PricingTable() {
         pricing: {
           USD: { monthly: 149.99, annually: 1499.99, prefix: "$" },
           GBP: { monthly: 119.99, annually: 1199.99, prefix: "£" },
-          EUR: { monthly: 139.99, annually: 1399.99, prefix: "€" }
+          EUR: { monthly: 139.99, annually: 1399.99, prefix: "€" },
+          CAD: { monthly: 0, annually: 0, prefix: "$" } // Adding CAD to match interface
         },
         features: [
           "8 CPU Cores",
@@ -168,7 +269,8 @@ export default function PricingTable() {
         pricing: {
           USD: { monthly: 199.99, annually: 1999.99, prefix: "$" },
           GBP: { monthly: 159.99, annually: 1599.99, prefix: "£" },
-          EUR: { monthly: 189.99, annually: 1899.99, prefix: "€" }
+          EUR: { monthly: 189.99, annually: 1899.99, prefix: "€" },
+          CAD: { monthly: 0, annually: 0, prefix: "$" } // Adding CAD to match interface
         },
         features: [
           "12 CPU Cores",
@@ -255,7 +357,96 @@ export default function PricingTable() {
   }
 
   if (isLoading) {
-    return <div>Loading pricing information...</div>
+    return <div className="text-center py-12">Loading pricing information...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="w-full">
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+          <p className="text-yellow-700">{error}</p>
+        </div>
+        <CurrencySelector />
+        
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-8 text-center">VPS Hosting Plans</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {displayVpsProducts.map((product) => (
+              <div key={product.id} className="flex flex-col border rounded-lg overflow-hidden">
+                <div className="bg-hyber-orange p-6 text-white">
+                  <h3 className="text-xl font-bold">{product.name}</h3>
+                  <p className="mt-2 text-white">{product.shortDescription || "High-performance virtual server"}</p>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="mb-6">
+                    <p className="text-xs font-medium text-gray-400 mb-1">Starting From</p>
+                    <p className="text-3xl font-bold">
+                      {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
+                      {(product.pricing?.[currency]?.monthly || fallbackCurrency.monthly).toFixed(2)}
+                      <span className="text-sm font-normal text-muted-foreground ml-1">{currency}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Billed monthly or {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
+                      {(product.pricing?.[currency]?.annually || fallbackCurrency.annually).toFixed(2)}/year
+                    </p>
+                  </div>
+                  <ul className="space-y-3 flex-1">
+                    {product.features.map((feature: string, index: number) => (
+                      <li key={index} className="flex items-start">
+                        <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-hyber-orange mr-2" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button asChild className="mt-6 w-full bg-hyber-orange hover:bg-hyber-red">
+                    <Link href={`/services/vps?plan=${product.id}&currency=${currency}`}>Browse Plans</Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h2 className="text-2xl font-bold mb-8 text-center">Dedicated Server Plans</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {displayDedicatedProducts.map((product) => (
+              <div key={product.id} className="flex flex-col border rounded-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-hyber-orange to-hyber-red p-6 text-white">
+                  <h3 className="text-xl font-bold">{product.name}</h3>
+                  <p className="mt-2 text-white">{product.shortDescription || "High-performance dedicated server"}</p>
+                </div>
+                <div className="p-6 flex-1 flex flex-col">
+                  <div className="mb-6">
+                    <p className="text-xs font-medium text-gray-400 mb-1">Starting From</p>
+                    <p className="text-3xl font-bold">
+                      {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
+                      {(product.pricing?.[currency]?.monthly || fallbackCurrency.monthly).toFixed(2)}
+                      <span className="text-sm font-normal text-muted-foreground ml-1">{currency}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Billed monthly or {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
+                      {(product.pricing?.[currency]?.annually || fallbackCurrency.annually).toFixed(2)}/year
+                    </p>
+                  </div>
+                  <ul className="space-y-3 flex-1">
+                    {product.features.map((feature: string, index: number) => (
+                      <li key={index} className="flex items-start">
+                        <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-hyber-orange mr-2" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button asChild className="mt-6 w-full bg-hyber-orange hover:bg-hyber-red border-b border-gray-200">
+                    <Link href={`/services/dedicated?plan=${product.id}&currency=${currency}`}>Select Plan</Link>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -273,10 +464,11 @@ export default function PricingTable() {
               </div>
               <div className="p-6 flex-1 flex flex-col">
                 <div className="mb-6">
+                  <p className="text-xs font-medium text-gray-400 mb-1">Starting From</p>
                   <p className="text-3xl font-bold">
                     {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
                     {(product.pricing?.[currency]?.monthly || fallbackCurrency.monthly).toFixed(2)}
-                    <span className="text-sm font-normal text-muted-foreground">/month</span>
+                    <span className="text-sm font-normal text-muted-foreground ml-1">{currency}</span>
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Billed monthly or {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
@@ -292,7 +484,7 @@ export default function PricingTable() {
                   ))}
                 </ul>
                 <Button asChild className="mt-6 w-full bg-hyber-orange hover:bg-hyber-red">
-                  <Link href={`/services/vps?plan=${product.id}&currency=${currency}`}>Select Plan</Link>
+                  <Link href={`/services/vps?plan=${product.id}&currency=${currency}`}>Browse Plans</Link>
                 </Button>
               </div>
             </div>
@@ -311,10 +503,11 @@ export default function PricingTable() {
               </div>
               <div className="p-6 flex-1 flex flex-col">
                 <div className="mb-6">
+                  <p className="text-xs font-medium text-gray-400 mb-1">Starting From</p>
                   <p className="text-3xl font-bold">
                     {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
                     {(product.pricing?.[currency]?.monthly || fallbackCurrency.monthly).toFixed(2)}
-                    <span className="text-sm font-normal text-muted-foreground">/month</span>
+                    <span className="text-sm font-normal text-muted-foreground ml-1">{currency}</span>
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
                     Billed monthly or {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
@@ -330,7 +523,7 @@ export default function PricingTable() {
                   ))}
                 </ul>
                 <Button asChild className="mt-6 w-full bg-hyber-orange hover:bg-hyber-red border-b border-gray-200">
-                  <Link href={`/services/dedicated?plan=${product.id}&currency=${currency}`}>Select Plan</Link>
+                  <Link href={`/services/dedicated?plan=${product.id}&currency={currency}`}>Select Plan</Link>
                 </Button>
               </div>
             </div>
