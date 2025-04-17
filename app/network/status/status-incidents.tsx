@@ -23,7 +23,7 @@ const fallbackIncidents = [
 async function getIncidentsData() {
   try {
     // Use our server-side API route instead of directly calling Instatus
-    const response = await fetch("/api/status", {
+    const response = await fetch("/api/status/incidents", {
       next: { revalidate: 60 }, // Revalidate every 60 seconds
     })
 
@@ -32,13 +32,16 @@ async function getIncidentsData() {
     }
 
     const data = await response.json()
-
-    if (!data.success || !data.incidents) {
-      console.log("API response doesn't have incidents data, using fallback data")
+    
+    // The Instatus API directly returns an array of incidents
+    // If it's not an array, use fallback data
+    if (!Array.isArray(data)) {
+      console.log("API response doesn't have expected structure, using fallback data")
       return { incidents: fallbackIncidents }
     }
 
-    return data.incidents
+    // If we get here, data is the array of incidents from Instatus
+    return { incidents: data }
   } catch (error) {
     console.error("Error fetching incidents data:", error)
     // Return fallback data instead of throwing an error

@@ -322,7 +322,7 @@ export default function NetworkPage() {
                 <div className="mt-8 pt-6 border-t text-center">
                   <p className="text-sm text-muted-foreground">Last updated: {new Date().toLocaleString()}</p>
                   <Button variant="outline" className="mt-4">
-                    <Link href="/network/status" className="flex items-center">
+                    <Link href="/status" className="flex items-center">
                       View Detailed Status
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </Link>
