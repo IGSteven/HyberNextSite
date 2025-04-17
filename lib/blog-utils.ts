@@ -1,13 +1,11 @@
-// Special handling for server-side only imports in Next.js
-// This tells Next.js that this code should only run on the server
-import 'server-only';
+// Blog utility functions for both client and server components
 import type { BlogPost, Category, Author } from "./blog-types"
 import path from "path"
 
 // Use imported blog data directly
 import blogData from "@/data/blog-data.json"
 
-// Function to read blog data (server-side only)
+// Function to read blog data (works in both client and server)
 export async function getBlogData() {
   try {
     // Return the imported data directly
@@ -23,16 +21,18 @@ export async function getBlogData() {
   }
 }
 
-// Function to write blog data to the JSON file (server-side only)
+// Function to write blog data to the JSON file (with safety checks)
 export async function writeBlogData(data: any) {
   try {
-    // Server-side only code using dynamic imports
+    // Only run server-side code when on the server
     if (typeof window === 'undefined') {
       const fs = await import('fs');
       const fullPath = path.join(process.cwd(), "data", "blog-data.json");
       fs.writeFileSync(fullPath, JSON.stringify(data, null, 2), "utf8");
+    } else {
+      console.warn("Cannot write blog data on the client side");
+      return false;
     }
-    return true;
   } catch (error) {
     console.error("Error writing blog data:", error)
     return false;
