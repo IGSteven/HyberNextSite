@@ -17,16 +17,29 @@ interface InstatusComponent {
   updated_at?: string
   position?: number
   group_id?: string
+  groupId?: string
   showcase?: boolean
   start_date?: string
+  isParent?: boolean
+  isCollapsed?: boolean
   [key: string]: any
 }
 
+// New interface for component groups from API
+interface APIComponentGroup {
+  id: string
+  name: string
+  order?: number
+  components?: InstatusComponent[]
+  [key: string]: any
+}
+
+// Interface for processed component groups for display
 interface ComponentGroup {
-  id: string;
-  name: string;
-  components: InstatusComponent[];
-  status: StatusType;
+  id: string
+  name: string
+  components: InstatusComponent[]
+  status: StatusType
 }
 
 interface InstatusStatusData {
@@ -309,31 +322,56 @@ export function StatusIndicator() {
       return;
     }
 
-    // First identify all potential groups (components that are parents)
-    const parentComponents = allComponents.filter(c => !c.group_id);
+    // Group components by their groupId
+    const groupMap = new Map<string, InstatusComponent[]>();
     
-    // Then create groups with their child components
-    const groups: ComponentGroup[] = parentComponents.map(parent => {
-      const childComponents = allComponents.filter(c => c.group_id === parent.id);
-      const groupStatus = determineGroupStatus([parent, ...childComponents]);
+    // First, find all unique groups using the groupId property
+    allComponents.forEach(component => {
+      if (component.groupId) {
+        if (!groupMap.has(component.groupId)) {
+          groupMap.set(component.groupId, []);
+        }
+        groupMap.get(component.groupId)?.push(component);
+      }
+    });
+    
+    // Create component groups for display
+    const processedGroups: ComponentGroup[] = [];
+    
+    // Process each group
+    groupMap.forEach((groupComponents, groupId) => {
+      // Check if there's a component with isParent=true in this group
+      const parentComponent = groupComponents.find(comp => comp.isParent === true);
       
-      return {
-        id: parent.id,
-        name: parent.name,
-        components: [parent, ...childComponents],
-        status: groupStatus as StatusType
-      };
+      if (parentComponent) {
+        // Use parent component name as the group name
+        const groupStatus = determineGroupStatus(groupComponents);
+        
+        processedGroups.push({
+          id: parentComponent.id,
+          name: parentComponent.name,
+          components: groupComponents,
+          status: groupStatus as StatusType
+        });
+      } else if (groupComponents.length > 0) {
+        // If no parent component, use first component's name and add " Group" suffix
+        const groupStatus = determineGroupStatus(groupComponents);
+        const groupName = (groupComponents[0].name || "Unknown Group") + " Group";
+        
+        processedGroups.push({
+          id: groupId,
+          name: groupName,
+          components: groupComponents,
+          status: groupStatus as StatusType
+        });
+      }
     });
     
-    // Find truly ungrouped components (not part of any group)
-    const standalone = allComponents.filter(c => {
-      // Component is not a parent and its group_id doesn't match any parent id
-      return !parentComponents.some(p => p.id === c.id) && 
-             !parentComponents.some(p => p.id === c.group_id);
-    });
+    // Find ungrouped components (those without a groupId)
+    const ungrouped = allComponents.filter(component => !component.groupId);
     
-    setComponentGroups(groups);
-    setUngroupedComponents(standalone);
+    setComponentGroups(processedGroups);
+    setUngroupedComponents(ungrouped);
   };
 
   useEffect(() => {
@@ -357,13 +395,22 @@ export function StatusIndicator() {
         })
         
         let componentsResult = []
+        
         if (componentsResponse.ok) {
           const data = await componentsResponse.json()
-          // Ensure components is an array
-          componentsResult = Array.isArray(data) ? data : 
-                            (data?.data && Array.isArray(data.data)) ? data.data : []
           
-          console.log("Components data:", componentsResult)
+          // Handle API response which has { success: true, data: [...components] } structure
+          if (data?.success === true && Array.isArray(data.data)) {
+            componentsResult = data.data;
+          } 
+          // Fallback for other response structures
+          else if (Array.isArray(data)) {
+            componentsResult = data;
+          } else if (data?.components && Array.isArray(data.components)) {
+            componentsResult = data.components;
+          }
+          
+          console.log("Components data:", componentsResult);
         }
 
         if (!statusResult.status) {

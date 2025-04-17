@@ -25,13 +25,22 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
+// Define types for Instatus API responses
 interface Component {
   id: string;
   name: string;
   status: string;
   order: number;
+  groupId?: string;
+  isParent?: boolean;
   description?: string;
   [key: string]: any;
+}
+
+interface ComponentGroup {
+  id: string;
+  name: string;
+  components: Component[];
 }
 
 export function StatusSubscribe() {
@@ -39,7 +48,10 @@ export function StatusSubscribe() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [notificationType, setNotificationType] = useState<"email" | "webhook" | "discord" | "slack">("email")
   const [availableServices, setAvailableServices] = useState<Component[]>([])
+  const [componentGroups, setComponentGroups] = useState<ComponentGroup[]>([])
+  const [ungroupedComponents, setUngroupedComponents] = useState<Component[]>([])
   const [isLoadingComponents, setIsLoadingComponents] = useState(true)
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set())
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,6 +81,8 @@ export function StatusSubscribe() {
             (a.order || 0) - (b.order || 0)
           )
           setAvailableServices(sortedComponents)
+          // Organize components into groups
+          organizeComponentGroups(sortedComponents)
         } else {
           throw new Error("Invalid component data")
         }
@@ -86,6 +100,142 @@ export function StatusSubscribe() {
     
     fetchComponents()
   }, [toast])
+
+  // Organize components into groups
+  const organizeComponentGroups = (components: Component[]) => {
+    if (!Array.isArray(components) || !components.length) {
+      setComponentGroups([]);
+      setUngroupedComponents([]);
+      return;
+    }
+
+    // Group components by their groupId
+    const groupMap = new Map<string, Component[]>();
+    
+    // First, find all unique groups using the groupId property
+    components.forEach(component => {
+      if (component.groupId) {
+        if (!groupMap.has(component.groupId)) {
+          groupMap.set(component.groupId, []);
+        }
+        groupMap.get(component.groupId)?.push(component);
+      }
+    });
+    
+    // Create component groups for display
+    const groups: ComponentGroup[] = [];
+    
+    // Process each group
+    groupMap.forEach((groupComponents, groupId) => {
+      // Check if there's a component with isParent=true in this group
+      const parentComponent = groupComponents.find(comp => comp.isParent === true);
+      
+      if (parentComponent) {
+        // Use parent component name as the group name
+        groups.push({
+          id: groupId,
+          name: parentComponent.name,
+          components: groupComponents,
+        });
+      } else if (groupComponents.length > 0) {
+        // If no parent component, use first component's name and add " Group" suffix
+        const groupName = (groupComponents[0].name || "Unknown Group") + " Group";
+        
+        groups.push({
+          id: groupId,
+          name: groupName,
+          components: groupComponents,
+        });
+      }
+    });
+    
+    // Find ungrouped components (those without a groupId)
+    const ungrouped = components.filter(component => !component.groupId);
+    
+    setComponentGroups(groups);
+    setUngroupedComponents(ungrouped);
+  };
+
+  // Handle group selection
+  const handleGroupSelection = (groupId: string, checked: boolean) => {
+    const newSelectedGroups = new Set(selectedGroups);
+    const currentServices = form.getValues("services") || [];
+    
+    // Get all component IDs in this group
+    const groupComponentIds = componentGroups
+      .find(group => group.id === groupId)
+      ?.components.map(comp => comp.id) || [];
+    
+    if (checked) {
+      // Add group to selected groups
+      newSelectedGroups.add(groupId);
+      
+      // Add all component IDs from this group to the services array
+      const updatedServices = [...new Set([...currentServices, ...groupComponentIds])];
+      form.setValue("services", updatedServices);
+    } else {
+      // Remove group from selected groups
+      newSelectedGroups.delete(groupId);
+      
+      // Remove all component IDs from this group
+      const updatedServices = currentServices.filter(id => !groupComponentIds.includes(id));
+      form.setValue("services", updatedServices);
+    }
+    
+    setSelectedGroups(newSelectedGroups);
+  };
+  
+  // Handle individual component selection
+  const handleComponentSelection = (componentId: string, groupId: string | undefined, checked: boolean) => {
+    const currentServices = form.getValues("services") || [];
+    const newSelectedGroups = new Set(selectedGroups);
+    
+    if (checked) {
+      // Add component to services
+      form.setValue("services", [...currentServices, componentId]);
+      
+      // Check if all components in the group are now selected
+      if (groupId) {
+        const group = componentGroups.find(g => g.id === groupId);
+        if (group) {
+          const groupComponentIds = group.components.map(c => c.id);
+          // If all group components would be in the updated services, add group to selected groups
+          const wouldAllBeSelected = groupComponentIds.every(id => 
+            currentServices.includes(id) || id === componentId
+          );
+          
+          if (wouldAllBeSelected) {
+            newSelectedGroups.add(groupId);
+            setSelectedGroups(newSelectedGroups);
+          }
+        }
+      }
+    } else {
+      // Remove component from services
+      form.setValue("services", currentServices.filter(id => id !== componentId));
+      
+      // If component belongs to a group, remove group from selected groups
+      if (groupId && selectedGroups.has(groupId)) {
+        newSelectedGroups.delete(groupId);
+        setSelectedGroups(newSelectedGroups);
+      }
+    }
+  };
+  
+  // Check if a component is in a selected group
+  const isComponentInSelectedGroup = (component: Component) => {
+    if (!component.groupId) return false;
+    return selectedGroups.has(component.groupId);
+  };
+  
+  // Check if all components in a group are selected
+  const isGroupFullySelected = (groupId: string) => {
+    const group = componentGroups.find(g => g.id === groupId);
+    if (!group) return false;
+    
+    const currentServices = form.getValues("services") || [];
+    return group.components.every(comp => currentServices.includes(comp.id));
+  };
 
   const watchNotifyAllServices = form.watch("notifyAllServices")
 
@@ -264,35 +414,111 @@ export function StatusSubscribe() {
                       <Loader2 className="h-6 w-6 animate-spin text-[#f2994a]" />
                       <span className="ml-2 text-sm text-gray-300">Loading services...</span>
                     </div>
-                  ) : availableServices.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 border border-[#463e59] rounded-md p-4 max-h-64 overflow-y-auto bg-[#1e1929]">
-                      {availableServices.map((service) => (
-                        <div key={service.id} className="flex items-center space-x-2">
-                          <Checkbox 
-                            id={service.id} 
-                            value={service.id}
-                            onCheckedChange={(checked) => {
-                              const currentServices = form.getValues("services") || [];
-                              if (checked) {
-                                form.setValue("services", [...currentServices, service.id]);
-                              } else {
-                                form.setValue("services", currentServices.filter(id => id !== service.id));
-                              }
-                            }}
-                            className="border-[#f2994a] text-[#f2994a]"
-                          />
-                          <label 
-                            htmlFor={service.id} 
-                            className="text-xs text-white cursor-pointer"
-                          >
-                            {service.name}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
                   ) : (
-                    <div className="p-4 border border-[#463e59] rounded-md bg-[#1e1929] text-gray-300 text-sm">
-                      No services available. You will be notified about all status changes.
+                    <div className="border border-[#463e59] rounded-md p-4 max-h-96 overflow-y-auto bg-[#1e1929] space-y-4">
+                      {/* Display component groups */}
+                      {componentGroups.length > 0 && (
+                        <div className="space-y-4">
+                          {componentGroups.map((group) => {
+                            const isChecked = isGroupFullySelected(group.id);
+                            
+                            return (
+                              <div key={group.id} className="space-y-2">
+                                {/* Group header with checkbox */}
+                                <div className="flex items-center space-x-2 border-b border-[#463e59] pb-2">
+                                  <Checkbox 
+                                    id={`group-${group.id}`} 
+                                    checked={isChecked}
+                                    onCheckedChange={(checked) => {
+                                      handleGroupSelection(group.id, !!checked);
+                                    }}
+                                    className="border-[#f2994a] text-[#f2994a]"
+                                  />
+                                  <label 
+                                    htmlFor={`group-${group.id}`} 
+                                    className="text-sm font-medium text-white cursor-pointer"
+                                  >
+                                    {group.name}
+                                  </label>
+                                </div>
+                                
+                                {/* Group components */}
+                                <div className="grid grid-cols-2 gap-x-2 gap-y-1 ml-6">
+                                  {group.components.map((component) => {
+                                    const currentServices = form.getValues("services") || [];
+                                    const isSelected = currentServices.includes(component.id);
+                                    const inSelectedGroup = selectedGroups.has(group.id);
+                                    
+                                    return (
+                                      <div 
+                                        key={component.id} 
+                                        className={`flex items-center space-x-2 p-1 rounded ${
+                                          inSelectedGroup ? 'bg-[#1a192f] border border-[#f2994a]/30' : ''
+                                        }`}
+                                      >
+                                        <Checkbox 
+                                          id={component.id} 
+                                          checked={isSelected}
+                                          onCheckedChange={(checked) => {
+                                            handleComponentSelection(component.id, group.id, !!checked);
+                                          }}
+                                          className="border-[#f2994a] text-[#f2994a]"
+                                        />
+                                        <label 
+                                          htmlFor={component.id} 
+                                          className="text-xs text-white cursor-pointer"
+                                        >
+                                          {component.name}
+                                        </label>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {/* Display ungrouped components */}
+                      {ungroupedComponents.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium text-white border-b border-[#463e59] pb-2">
+                            Other Services
+                          </h4>
+                          <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                            {ungroupedComponents.map((component) => {
+                              const currentServices = form.getValues("services") || [];
+                              const isSelected = currentServices.includes(component.id);
+                              
+                              return (
+                                <div key={component.id} className="flex items-center space-x-2">
+                                  <Checkbox 
+                                    id={component.id} 
+                                    checked={isSelected}
+                                    onCheckedChange={(checked) => {
+                                      handleComponentSelection(component.id, undefined, !!checked);
+                                    }}
+                                    className="border-[#f2994a] text-[#f2994a]"
+                                  />
+                                  <label 
+                                    htmlFor={component.id} 
+                                    className="text-xs text-white cursor-pointer"
+                                  >
+                                    {component.name}
+                                  </label>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {componentGroups.length === 0 && ungroupedComponents.length === 0 && (
+                        <div className="p-4 text-gray-300 text-sm text-center">
+                          No services available. You will be notified about all status changes.
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
