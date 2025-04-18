@@ -82,10 +82,44 @@ const statusConfig: Record<string, { color: string; icon: JSX.Element }> = {
   },
 }
 
+// Function to format date strings properly
+const formatDateString = (dateString: string): string => {
+  try {
+    // Check if the dateString is valid
+    if (!dateString) {
+      return "Unknown date";
+    }
+    
+    // Try to parse the date
+    const date = new Date(dateString);
+    
+    // Check if date is valid (an invalid date will return NaN for getTime())
+    if (isNaN(date.getTime())) {
+      console.warn(`Invalid date string received: ${dateString}`);
+      return "Date unavailable";
+    }
+    
+    // Format the date using Intl.DateTimeFormat for better localization
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      timeZoneName: 'short'
+    }).format(date);
+  } catch (error) {
+    console.error("Error formatting date:", error, dateString);
+    return "Date unavailable";
+  }
+};
+
 // Detailed incident dialog
-function IncidentDetails({ incident }: { incident: Incident }) {
+function IncidentDetails({ incident, isOpen: defaultIsOpen = false }: { incident: Incident; isOpen?: boolean }) {
   const [detailedIncident, setDetailedIncident] = useState<Incident | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isOpen, setIsOpen] = useState(defaultIsOpen)
 
   const fetchDetails = async () => {
     if (!detailedIncident && !loading) {
@@ -103,7 +137,13 @@ function IncidentDetails({ incident }: { incident: Incident }) {
   const statusInfo = statusConfig[status as keyof typeof statusConfig] || statusConfig.investigating
 
   return (
-    <Dialog onOpenChange={(open) => open && fetchDetails()}>
+    <Dialog 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (open) fetchDetails();
+      }}
+    >
       <DialogTrigger asChild>
         <Card className="hover:border-primary/50 cursor-pointer transition-colors">
           <CardHeader className="pb-2">
@@ -116,14 +156,14 @@ function IncidentDetails({ incident }: { incident: Incident }) {
                 </span>
               </Badge>
             </div>
-            <CardDescription>Started: {new Date(incident.created).toLocaleString()}</CardDescription>
+            <CardDescription>Started: {formatDateString(incident.created)}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex justify-between items-center">
               <div>
                 {incident.updates && incident.updates.length > 0 && (
                   <p className="text-sm text-muted-foreground">
-                    Latest update: {new Date(incident.updates[0].created).toLocaleString()}
+                    Latest update: {formatDateString(incident.updates[0].created)}
                   </p>
                 )}
               </div>
@@ -141,7 +181,7 @@ function IncidentDetails({ incident }: { incident: Incident }) {
             </Badge>
           </DialogTitle>
           <DialogDescription>
-            Started: {new Date(displayIncident.created).toLocaleString()}
+            Started: {formatDateString(displayIncident.created)}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
@@ -150,9 +190,12 @@ function IncidentDetails({ incident }: { incident: Incident }) {
               <div key={update.id} className="border-l-2 border-muted pl-4 py-2">
                 <div className="flex justify-between items-start">
                   <p className="font-medium">{update.status.charAt(0).toUpperCase() + update.status.slice(1)}</p>
-                  <span className="text-xs text-muted-foreground">{new Date(update.created).toLocaleString()}</span>
+                  <span className="text-xs text-muted-foreground">{formatDateString(update.created)}</span>
                 </div>
-                <p className="mt-2 text-sm">{update.body}</p>
+                <div className="mt-2 text-sm">
+                  {/* Display the update body (comment) */}
+                  <div dangerouslySetInnerHTML={{ __html: update.body }} />
+                </div>
               </div>
             ))}
           </div>
@@ -162,9 +205,24 @@ function IncidentDetails({ incident }: { incident: Incident }) {
   )
 }
 
-export function StatusIncidents() {
+export function StatusIncidents({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [loading, setLoading] = useState(true)
+  const [showResolved, setShowResolved] = useState(false)
+  const [openIncidentIds, setOpenIncidentIds] = useState<Set<string>>(new Set())
+
+  // Track which incident dialogs are open to preserve state during refresh
+  const trackOpenIncident = (incidentId: string, isOpen: boolean) => {
+    setOpenIncidentIds(prev => {
+      const newSet = new Set(prev);
+      if (isOpen) {
+        newSet.add(incidentId);
+      } else {
+        newSet.delete(incidentId);
+      }
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     async function fetchIncidents() {
@@ -197,7 +255,16 @@ export function StatusIncidents() {
     }
 
     fetchIncidents()
-  }, [])
+  }, [refreshTrigger])
+
+  // Function to normalize status string for comparison (case-insensitive)
+  const isResolvedStatus = (status: string): boolean => {
+    return status.toLowerCase() === "resolved";
+  };
+
+  const filteredIncidents = showResolved 
+    ? incidents 
+    : incidents.filter((incident: Incident) => !isResolvedStatus(incident.status)) || [];
 
   if (loading) {
     return (
@@ -211,26 +278,43 @@ export function StatusIncidents() {
     )
   }
 
-  const activeIncidents = incidents.filter((incident: Incident) => incident.status !== "resolved") || []
-
-  if (activeIncidents.length === 0) {
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-center py-8">
-            <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
-            <p className="text-lg font-medium">No active incidents</p>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   return (
     <div className="space-y-6">
-      {activeIncidents.map((incident: Incident) => (
-        <IncidentDetails key={incident.id} incident={incident} />
-      ))}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="show-resolved"
+            checked={showResolved}
+            onChange={() => setShowResolved(!showResolved)}
+            className="mr-2 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <label htmlFor="show-resolved" className="text-sm font-medium text-muted-foreground">
+            Show resolved incidents
+          </label>
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {filteredIncidents.length === 0 ? 'No incidents to show' : `Showing ${filteredIncidents.length} incident${filteredIncidents.length !== 1 ? 's' : ''}`}
+        </span>
+      </div>
+
+      {filteredIncidents.length === 0 ? (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-center py-8">
+              <CheckCircle className="h-8 w-8 text-green-500 mr-2" />
+              <p className="text-lg font-medium">No {showResolved ? '' : 'active'} incidents</p>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        filteredIncidents.map((incident: Incident) => (
+          <IncidentDetails 
+            key={incident.id} 
+            incident={incident}
+          />
+        ))
+      )}
     </div>
   )
 }

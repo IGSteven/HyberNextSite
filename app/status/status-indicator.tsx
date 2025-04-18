@@ -18,6 +18,8 @@ interface InstatusComponent {
   position?: number
   group_id?: string
   groupId?: string
+  groupName?: string  // Store the actual group name
+  parentGroup?: string // Add parentGroup property to store parent group name
   showcase?: boolean
   start_date?: string
   isParent?: boolean
@@ -167,6 +169,15 @@ function determineGroupStatus(components: InstatusComponent[]): StatusType {
 function ComponentDetails({ component }: { component: InstatusComponent }) {
   const [detailedComponent, setDetailedComponent] = useState<InstatusComponent | null>(null)
   const [loading, setLoading] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+  // Pre-generate performance data to avoid random values during renders
+  const [performanceData] = useState(() => 
+    Array(7).fill(0).map(() => Math.random() > 0.1)
+  );
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchDetails = async () => {
     if (!detailedComponent && !loading) {
@@ -228,9 +239,13 @@ function ComponentDetails({ component }: { component: InstatusComponent }) {
             </Badge>
           </DialogTitle>
           <DialogDescription>
-            Last updated: {displayComponent.updated_at 
-              ? new Date(displayComponent.updated_at).toLocaleString() 
-              : new Date().toLocaleString()}
+            Last updated: {isMounted ? (
+              displayComponent.updated_at 
+                ? new Date(displayComponent.updated_at).toLocaleString() 
+                : new Date().toLocaleString()
+            ) : (
+              "Loading..."
+            )}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
@@ -252,11 +267,11 @@ function ComponentDetails({ component }: { component: InstatusComponent }) {
             <div>
               <h4 className="text-sm font-medium">Historical Performance</h4>
               <div className="mt-2 grid grid-cols-7 gap-1">
-                {[...Array(7)].map((_, i) => (
+                {performanceData.map((isOperational, i) => (
                   <div 
-                    key={i} 
-                    className={`h-4 rounded-sm ${Math.random() > 0.1 ? "bg-green-500" : "bg-red-500"}`}
-                    title={`Day ${i+1}: ${Math.random() > 0.1 ? "Operational" : "Outage"}`}
+                    key={`${component.id}-day-${i}`} 
+                    className={`h-4 rounded-sm ${isOperational ? "bg-green-500" : "bg-red-500"}`}
+                    title={`Day ${i+1}: ${isOperational ? "Operational" : "Outage"}`}
                   />
                 ))}
               </div>
@@ -270,10 +285,11 @@ function ComponentDetails({ component }: { component: InstatusComponent }) {
 }
 
 // Component group display with collapsible children
-function ComponentGroup({ group }: { group: ComponentGroup }) {
+function ComponentGroup({ group }: { group: ComponentGroup & { childGroups?: ComponentGroup[] } }) {
   const [isOpen, setIsOpen] = useState(group.status !== "operational");
   
   const statusInfo = statusConfig[group.status] || statusConfig.unknown;
+  const hasChildGroups = group.childGroups && group.childGroups.length > 0;
 
   return (
     <Collapsible
@@ -297,22 +313,68 @@ function ComponentGroup({ group }: { group: ComponentGroup }) {
       </CollapsibleTrigger>
       <CollapsibleContent className="border-t">
         <div className="p-2 space-y-1">
+          {/* Render direct components of this group */}
           {group.components.map((component) => (
             <ComponentDetails key={component.id} component={component} />
           ))}
+          
+          {/* Render child groups if there are any */}
+          {hasChildGroups && (
+            <div className="mt-4 space-y-4">
+              {group.childGroups.map(childGroup => (
+                <div key={childGroup.id} className="border-t pt-3">
+                  <div className="font-medium text-sm mb-2 px-2">{childGroup.name}</div>
+                  <div className="space-y-1">
+                    {childGroup.components.map(component => (
+                      <ComponentDetails key={component.id} component={component} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </CollapsibleContent>
     </Collapsible>
   );
 }
 
-export function StatusIndicator() {
+export function StatusIndicator({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   const [statusData, setStatusData] = useState<InstatusStatusData | null>(null)
   const [components, setComponents] = useState<InstatusComponent[]>([])
   const [loading, setLoading] = useState(true)
   const [lastUpdated, setLastUpdated] = useState(new Date())
   const [componentGroups, setComponentGroups] = useState<ComponentGroup[]>([])
   const [ungroupedComponents, setUngroupedComponents] = useState<InstatusComponent[]>([])
+  const [isMounted, setIsMounted] = useState(false)
+  
+  // Define known group ID mappings based on the Instatus official page structure
+  const knownGroupNames: Record<string, string> = {
+    // Core group
+    "clv6h3a9a37836b7n4aul61snm": "Core",
+    
+    // Network & Datacentres group 
+    "clv6h3j5l38153ben4zz9tjjdi": "Our Network & Datacentres",
+    
+    // VPS Hosts groups
+    "clv6h3kyd38348ben4oe6k2yfj": "VPS Hosts",
+    "clv6h3mtk38589ben40i53yjzv": "United Kingdom - Coventry",
+    "clv6h3og838829ben4ht9i5a96": "Canada - Kitchener",
+    
+    // Other services group
+    "clv6h3pie39069ben4vl0zw50p": "Other",
+  };
+  
+  // Map of parent-child group relationships (child groupId -> parent groupId)
+  const groupParentMap: Record<string, string> = {
+    // Coventry and Kitchener are children of VPS Hosts
+    "clv6h3mtk38589ben40i53yjzv": "clv6h3kyd38348ben4oe6k2yfj", // UK Coventry -> VPS Hosts
+    "clv6h3og838829ben4ht9i5a96": "clv6h3kyd38348ben4oe6k2yfj", // Canada Kitchener -> VPS Hosts
+  };
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Function to organize components into groups
   const organizeComponentGroups = (allComponents: InstatusComponent[]) => {
@@ -322,12 +384,32 @@ export function StatusIndicator() {
       return;
     }
 
+    // Check for duplicate component IDs and ensure each ID is unique
+    const uniqueComponents = allComponents.reduce<{ [id: string]: InstatusComponent }>((acc, component) => {
+      // Only add if we haven't seen this ID before
+      if (!acc[component.id]) {
+        acc[component.id] = component;
+      }
+      return acc;
+    }, {});
+
+    const deduplicatedComponents = Object.values(uniqueComponents);
+    
     // Group components by their groupId
     const groupMap = new Map<string, InstatusComponent[]>();
     
-    // First, find all unique groups using the groupId property
-    allComponents.forEach(component => {
+    // Group name mapping to consolidate groups
+    const groupNameMap = new Map<string, string>();
+    
+    // First, find all unique groups using the groupId property and apply known group names
+    deduplicatedComponents.forEach(component => {
       if (component.groupId) {
+        // Check if we have a known name for this groupId
+        if (knownGroupNames[component.groupId]) {
+          // Store the mapping from groupId to display name
+          groupNameMap.set(component.groupId, knownGroupNames[component.groupId]);
+        }
+        
         if (!groupMap.has(component.groupId)) {
           groupMap.set(component.groupId, []);
         }
@@ -337,40 +419,106 @@ export function StatusIndicator() {
     
     // Create component groups for display
     const processedGroups: ComponentGroup[] = [];
+    // Track component IDs that have been assigned to groups
+    const assignedComponentIds = new Set<string>();
+    // Track which groups should be excluded from top-level (they are subgroups)
+    const childGroupIds = new Set<string>(Object.keys(groupParentMap));
     
     // Process each group
+    let groupIndex = 0;
     groupMap.forEach((groupComponents, groupId) => {
+      // Skip child groups for now - we'll handle them later with their parents
+      if (childGroupIds.has(groupId)) {
+        return;
+      }
+      
+      // Mark all these components as assigned
+      groupComponents.forEach(comp => assignedComponentIds.add(comp.id));
+      
+      // Get the known group name if available
+      const knownGroupName = groupNameMap.get(groupId);
+      
       // Check if there's a component with isParent=true in this group
       const parentComponent = groupComponents.find(comp => comp.isParent === true);
       
+      // Find any child groups for this parent
+      const childGroups: ComponentGroup[] = [];
+      Object.entries(groupParentMap).forEach(([childId, parentId]) => {
+        if (parentId === groupId && groupMap.has(childId)) {
+          const childComponents = groupMap.get(childId) || [];
+          // Mark child components as assigned
+          childComponents.forEach(comp => assignedComponentIds.add(comp.id));
+          
+          const childGroupName = knownGroupNames[childId] || 
+                                 childComponents.find(comp => comp.groupName)?.groupName || 
+                                 "Unknown Group";
+          
+          childGroups.push({
+            id: `group-${childId}-${groupIndex++}`,
+            name: childGroupName,
+            components: childComponents,
+            status: determineGroupStatus(childComponents) as StatusType
+          });
+        }
+      });
+      
       if (parentComponent) {
-        // Use parent component name as the group name
+        // Use group name from mapping, or parent component name
         const groupStatus = determineGroupStatus(groupComponents);
         
         processedGroups.push({
-          id: parentComponent.id,
-          name: parentComponent.name,
-          components: groupComponents,
-          status: groupStatus as StatusType
-        });
+          id: `group-${groupId}-${groupIndex}`,
+          name: knownGroupName || parentComponent.name,
+          components: [...groupComponents],
+          status: groupStatus as StatusType,
+          childGroups: childGroups.length > 0 ? childGroups : undefined
+        } as ComponentGroup & { childGroups?: ComponentGroup[] });
       } else if (groupComponents.length > 0) {
-        // If no parent component, use first component's name and add " Group" suffix
+        // If no parent component, use the proper group name if available
         const groupStatus = determineGroupStatus(groupComponents);
-        const groupName = (groupComponents[0].name || "Unknown Group") + " Group";
+        
+        // First try known group name, then look for component with groupName
+        const componentWithGroupName = groupComponents.find(comp => comp.groupName);
+        
+        // Use the group name from our mapping if available, otherwise fallback
+        const groupName = knownGroupName || 
+                          componentWithGroupName?.groupName || 
+                          groupComponents[0].name;
         
         processedGroups.push({
-          id: groupId,
+          id: `group-${groupId}-${groupIndex}`,
           name: groupName,
-          components: groupComponents,
-          status: groupStatus as StatusType
-        });
+          components: [...groupComponents],
+          status: groupStatus as StatusType,
+          childGroups: childGroups.length > 0 ? childGroups : undefined
+        } as ComponentGroup & { childGroups?: ComponentGroup[] });
       }
+      
+      // Increment group index for unique IDs
+      groupIndex++;
     });
     
-    // Find ungrouped components (those without a groupId)
-    const ungrouped = allComponents.filter(component => !component.groupId);
+    // Find ungrouped components (those without a groupId or not assigned to a group)
+    const ungrouped = deduplicatedComponents.filter(component => 
+      !component.groupId && !assignedComponentIds.has(component.id)
+    );
     
-    setComponentGroups(processedGroups);
+    // Sort groups to match the Instatus page order
+    const sortedGroups = processedGroups.sort((a, b) => {
+      // Custom order based on the actual Instatus page
+      const groupOrder: Record<string, number> = {
+        "Core": 1,
+        "Our Network & Datacentres": 2,
+        "VPS Hosts": 3,
+        "Other": 4
+      };
+      
+      const orderA = groupOrder[a.name] || 999;
+      const orderB = groupOrder[b.name] || 999;
+      return orderA - orderB;
+    });
+    
+    setComponentGroups(sortedGroups);
     setUngroupedComponents(ungrouped);
   };
 
@@ -437,7 +585,7 @@ export function StatusIndicator() {
     }
 
     fetchData()
-  }, [])
+  }, [refreshTrigger])
 
   if (loading) {
     return (
@@ -473,7 +621,7 @@ export function StatusIndicator() {
             </span>
           </Badge>
         </div>
-        <CardDescription>Last updated: {lastUpdated.toLocaleString()}</CardDescription>
+        <CardDescription>Last updated: {isMounted ? lastUpdated.toLocaleString() : "Loading..."}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4 mt-4">

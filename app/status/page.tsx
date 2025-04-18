@@ -14,13 +14,24 @@ import { StatusSubscribe } from "./status-subscribe"
 
 export default function StatusPage() {
   const [lastUpdated, setLastUpdated] = useState(new Date())
-  const [key, setKey] = useState(Date.now()) // Use key to force re-render of components
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
+  const [isMounted, setIsMounted] = useState(false)
+
+  // Function to update data without remounting components
+  const refreshData = () => {
+    setLastUpdated(new Date());
+    setRefreshTrigger(prev => prev + 1);
+  };
+
+  // Mark component as mounted (client-side only)
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Set up a refresh timer that runs every 30 seconds
   useEffect(() => {
     const refreshInterval = setInterval(() => {
-      setLastUpdated(new Date());
-      setKey(Date.now()); // This forces the components to re-render
+      refreshData();
     }, 30000); // 30 seconds
 
     return () => clearInterval(refreshInterval);
@@ -28,8 +39,7 @@ export default function StatusPage() {
 
   // Function to manually refresh the page
   const handleManualRefresh = () => {
-    setLastUpdated(new Date());
-    setKey(Date.now());
+    refreshData();
   };
 
   return (
@@ -44,14 +54,14 @@ export default function StatusPage() {
 
         <div className="mt-16">
           <Suspense fallback={<StatusSkeleton />}>
-            <StatusIndicator key={`indicator-${key}`} />
+            <StatusIndicator refreshTrigger={refreshTrigger} />
           </Suspense>
         </div>
 
         <div className="mt-16">
           <h2 className="text-2xl font-bold mb-8">Current Incidents</h2>
           <Suspense fallback={<div className="animate-pulse h-32 bg-muted rounded-lg"></div>}>
-            <StatusIncidents key={`incidents-${key}`} />
+            <StatusIncidents refreshTrigger={refreshTrigger} />
           </Suspense>
         </div>
 
@@ -59,7 +69,7 @@ export default function StatusPage() {
           <div>
             <h2 className="text-2xl font-bold mb-8">Scheduled Maintenance</h2>
             <Suspense fallback={<div className="animate-pulse h-32 bg-muted rounded-lg"></div>}>
-              <StatusMaintenance key={`maintenance-${key}`} />
+              <StatusMaintenance refreshTrigger={refreshTrigger} />
             </Suspense>
           </div>
           
@@ -72,14 +82,18 @@ export default function StatusPage() {
         <div className="mt-16 text-center">
           <p className="text-muted-foreground mb-4">
             This page automatically refreshes every 30 seconds. Last updated:{" "}
-            {lastUpdated.toLocaleString("en-US", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-            })}
+            {isMounted ? (
+              lastUpdated.toLocaleString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+              })
+            ) : (
+              "Loading..."
+            )}
           </p>
           <div className="flex justify-center gap-4">
             <Button 

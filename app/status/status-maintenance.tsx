@@ -176,7 +176,7 @@ function MaintenanceDetail({ maintenance }: { maintenance: Maintenance }) {
   )
 }
 
-export function StatusMaintenance() {
+export function StatusMaintenance({ refreshTrigger = 0 }: { refreshTrigger?: number }) {
   const [maintenances, setMaintenances] = useState<Maintenance[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -209,7 +209,7 @@ export function StatusMaintenance() {
     }
 
     fetchMaintenances()
-  }, [])
+  }, [refreshTrigger])
 
   if (loading) {
     return (
