@@ -1,6 +1,6 @@
 import { InstatusRequest, InstatusRequestNoCache } from './utils';
 
-export interface MaintenanceUpdate {
+export interface IncidentUpdate {
     id: string;
     message: string;
     status: string;
@@ -12,7 +12,7 @@ export interface MaintenanceUpdate {
     updatedAt: string;
 }
 
-export interface MaintenanceComponent {
+export interface IncidentComponent {
     id: string;
     name: string;
     status: string;
@@ -23,30 +23,30 @@ export interface MaintenanceComponent {
     updatedAt: string;
 }
 
-export interface Maintenance {
+export interface Incident {
     id: string;
     name: string;
-    start: string;
-    end: string;
+    started: string;
+    resolved: string | null;
     status: string;
     impact: string;
     createdAt: string;
     updatedAt: string;
-    updates: MaintenanceUpdate[];
-    components: MaintenanceComponent[];
+    updates: IncidentUpdate[];
+    components: IncidentComponent[];
 }
 
 /**
- * Fetches all maintenances from the Instatus API and filters out unnecessary information.
- * @returns {Promise<Maintenance[]>} A promise that resolves to an array of maintenances.
+ * Fetches all incidents from the Instatus API and filters out unnecessary information.
+ * @returns {Promise<Incident[]>} A promise that resolves to an array of incidents.
  * @throws {Error} If the API request fails or if the response is not in the expected format.
  */
-export async function getMaintenances(): Promise<Maintenance[]> {
-    const endpoint = "maintenances";
+export async function getIncidents(): Promise<Incident[]> {
+    const endpoint = "incidents";
     const data = {};
 
     if (process.env.INSTATUS_DEBUG === "true") {
-        console.log("Fetching all maintenances");
+        console.log("Fetching all incidents");
         console.log("Endpoint:", endpoint);
     }
 
@@ -56,16 +56,16 @@ export async function getMaintenances(): Promise<Maintenance[]> {
         console.log("API Response:", response);
     }
 
-    const maintenances: Maintenance[] = response.map((maintenance: any) => ({
-        id: maintenance.id,
-        name: maintenance.name,
-        start: maintenance.start,
-        end: maintenance.end,
-        status: maintenance.status,
-        impact: maintenance.impact,
-        createdAt: maintenance.createdAt,
-        updatedAt: maintenance.updatedAt,
-        updates: maintenance.updates.map((update: any) => ({
+    const incidents: Incident[] = response.map((incident: any) => ({
+        id: incident.id,
+        name: incident.name,
+        started: incident.started,
+        resolved: incident.resolved,
+        status: incident.status,
+        impact: incident.impact,
+        createdAt: incident.createdAt,
+        updatedAt: incident.updatedAt,
+        updates: incident.updates.map((update: any) => ({
             id: update.id,
             message: update.message,
             status: update.status,
@@ -76,7 +76,7 @@ export async function getMaintenances(): Promise<Maintenance[]> {
             createdAt: update.createdAt,
             updatedAt: update.updatedAt,
         })),
-        components: maintenance.components.map((component: any) => ({
+        components: incident.components.map((component: any) => ({
             id: component.id,
             name: component.name,
             status: component.status,
@@ -89,23 +89,23 @@ export async function getMaintenances(): Promise<Maintenance[]> {
     }));
 
     if (process.env.INSTATUS_DEBUG === "true") {
-        console.log("Formatted Maintenances:", maintenances);
+        console.log("Formatted Incidents:", incidents);
     }
 
-    return maintenances;
+    return incidents;
 }
 
 /**
- * Fetches a specific maintenance by its ID from the Instatus API.
- * @param id - The ID of the maintenance to fetch.
- * @returns {Promise<Maintenance | null>} A promise that resolves to the maintenance object if found, or null if not found.
+ * Fetches a specific incident by its ID from the Instatus API.
+ * @param id - The ID of the incident to fetch.
+ * @returns {Promise<Incident | null>} A promise that resolves to the incident object if found, or null if not found.
  */
-export async function getMaintenanceById(id: string): Promise<Maintenance | null> {
-    const endpoint = `maintenances/${id}`;
+export async function getIncidentById(id: string): Promise<Incident | null> {
+    const endpoint = `incidents/${id}`;
     const data = {};
 
     if (process.env.INSTATUS_DEBUG === "true") {
-        console.log("Fetching maintenance by ID:", id);
+        console.log("Fetching incident by ID:", id);
         console.log("Endpoint:", endpoint);
     }
 
@@ -119,8 +119,8 @@ export async function getMaintenanceById(id: string): Promise<Maintenance | null
         return {
             id: response.id,
             name: response.name,
-            start: response.start,
-            end: response.end,
+            started: response.started,
+            resolved: response.resolved,
             status: response.status,
             impact: response.impact,
             createdAt: response.createdAt,
@@ -150,8 +150,8 @@ export async function getMaintenanceById(id: string): Promise<Maintenance | null
     }
 
     if (process.env.INSTATUS_DEBUG === "true") {
-        console.log("Maintenance not found for ID:", id);
+        console.log("Incident not found for ID:", id);
     }
 
-    return null; // Return null if no maintenance is found
+    return null; // Return null if no incident is found
 }
