@@ -1,4 +1,4 @@
-import { InstatusRequest } from './utils';
+import { InstatusRequest, InstatusRequestNoCache } from './utils';
 
 
 export interface StatusComponent {
@@ -20,12 +20,27 @@ export interface StatusComponent {
     children: StatusComponent[] | null;
 }
 
-
-export async function getComponents(cache = true): Promise<StatusComponent[]> {
+/**
+ * Fetches all components from the Instatus API and organizes them into a hierarchical structure.
+ * @returns {Promise<StatusComponent[]>} A promise that resolves to an array of top-level components, each with their children populated.
+ * @throws {Error} If the API request fails or if the response is not in the expected format.
+ * @description This function retrieves all components from the Instatus API, filters out archived components, and organizes them into a tree structure based on their parent-child relationships. It also sorts the components by their order property and removes empty children arrays.
+ */
+export async function getComponents(): Promise<StatusComponent[]> {
     const endpoint = "components";
     const data = {};
 
+    if (process.env.INSTATUS_DEBUG === "true") {
+        console.log("Fetching all components");
+        console.log("Endpoint:", endpoint);
+    }
+
     const response = await InstatusRequest(endpoint, data);
+
+    if (process.env.INSTATUS_DEBUG === "true") {
+        console.log("API Response:", response);
+    }
+
     const componentsMap: Map<string, StatusComponent> = new Map();
     const topLevelComponents: StatusComponent[] = [];
 
@@ -87,5 +102,53 @@ export async function getComponents(cache = true): Promise<StatusComponent[]> {
         });
     };
 
-    return cleanComponents(topLevelComponents);
+    const result = cleanComponents(topLevelComponents);
+
+    if (process.env.INSTATUS_DEBUG === "true") {
+        console.log("Formatted Components:", result);
+    }
+
+    return result;
+}
+
+/**
+ * Fetches a specific component by its ID from the Instatus API.
+ * @param id - The ID of the component to fetch.
+ * @returns {Promise<StatusComponent | null>} A promise that resolves to the component object if found, or null if not found.
+ */
+export async function getComponentById(id: string): Promise<StatusComponent | null> {
+    const endpoint = "components/" + id;
+    const data = {};
+
+    if (process.env.INSTATUS_DEBUG === "true") {
+        console.log("Fetching component by ID:", id);
+        console.log("Endpoint:", endpoint);
+    }
+
+    const response = await InstatusRequestNoCache(endpoint, data);
+
+    if (process.env.INSTATUS_DEBUG === "true") {
+        console.log("API Response:", response);
+    }
+
+    if (response && response.id === id) {
+        return {
+            id: response.id,
+            name: response.name,
+            status: response.status,
+            order: response.order,
+            createdAt: new Date(response.createdAt).toISOString(),
+            updatedAt: new Date(response.updatedAt).toISOString(),
+            groupId: response.groupId,
+            isParent: response.isParent,
+            isCollapsed: response.isCollapsed, // Retain isCollapsed for future UI use
+            children: [],
+        };
+    }
+
+    if (process.env.INSTATUS_DEBUG === "true") {
+        console.log("Component not found for ID:", id);
+    }
+
+    return null; // Return null if no component is found
 }
