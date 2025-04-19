@@ -31,3 +31,4 @@ example-data/*
 example-data/components-api.json
 /example-data/*
 /example-data/components-api.json
+tests.js
