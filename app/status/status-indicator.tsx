@@ -1,11 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, AlertTriangle, AlertCircle, ChevronRight, Loader2, ChevronDown } from "lucide-react"
+import { CheckCircle, AlertTriangle, AlertCircle, ChevronRight, Loader2, ChevronDown, RefreshCw, AlertOctagon, XCircle, Settings } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
+import { formatDistanceToNow } from "date-fns"
+import { ReactNode } from "react"
 
 // Define types for Instatus API responses
 interface InstatusComponent {
@@ -115,7 +119,7 @@ async function getComponentDetails(componentId: string): Promise<InstatusCompone
 // Define status configurations with proper types
 type StatusType = "operational" | "degraded_performance" | "partial_outage" | "major_outage" | "under_maintenance" | "unknown"
 
-const statusConfig: Record<StatusType, { color: string; icon: JSX.Element; text: string }> = {
+const statusConfig: Record<StatusType, { color: string; icon: React.ReactNode; text: string }> = {
   operational: {
     color: "bg-green-500 hover:bg-green-600",
     icon: <CheckCircle className="h-5 w-5" />,
@@ -284,8 +288,15 @@ function ComponentDetails({ component }: { component: InstatusComponent }) {
   )
 }
 
+// Update ComponentGroup to accept all the props being passed to it
+interface ComponentGroupProps {
+  group: ComponentGroup & { childGroups?: ComponentGroup[] };
+  allGroups?: ComponentGroup[];
+  groupParentMap?: Record<string, string>;
+}
+
 // Component group display with collapsible children
-function ComponentGroup({ group }: { group: ComponentGroup & { childGroups?: ComponentGroup[] } }) {
+function ComponentGroup({ group, allGroups, groupParentMap }: ComponentGroupProps) {
   const [isOpen, setIsOpen] = useState(group.status !== "operational");
   
   const statusInfo = statusConfig[group.status] || statusConfig.unknown;
@@ -321,7 +332,7 @@ function ComponentGroup({ group }: { group: ComponentGroup & { childGroups?: Com
           {/* Render child groups if there are any */}
           {hasChildGroups && (
             <div className="mt-4 space-y-4">
-              {group.childGroups.map(childGroup => (
+              {group.childGroups?.map(childGroup => (
                 <div key={childGroup.id} className="border-t pt-3">
                   <div className="font-medium text-sm mb-2 px-2">{childGroup.name}</div>
                   <div className="space-y-1">
@@ -376,7 +387,7 @@ export function StatusIndicator({ refreshTrigger = 0 }: { refreshTrigger?: numbe
     setIsMounted(true);
   }, []);
 
-  // Function to organize components into groups
+  // Function to organize components into groups with support for multiple levels of nesting
   const organizeComponentGroups = (allComponents: InstatusComponent[]) => {
     if (!Array.isArray(allComponents) || !allComponents.length) {
       setComponentGroups([]);
@@ -395,25 +406,44 @@ export function StatusIndicator({ refreshTrigger = 0 }: { refreshTrigger?: numbe
 
     const deduplicatedComponents = Object.values(uniqueComponents);
     
+    // Special case handling for network components with AS numbers
+    deduplicatedComponents.forEach(component => {
+      // Check if this is a network component with AS number
+      if (component.name && (
+          component.name.includes("Network (AS51692)") || 
+          component.name.includes("Network (AS27498)")
+        )) {
+        // Assign it to the Network & Datacentres group
+        component.groupId = "clv6h3j5l38153ben4zz9tjjdi"; // Network & Datacentres group ID
+        component.groupName = "Our Network & Datacentres"; // Also set the group name
+      }
+      
+      // Ensure Core is treated as a group, not as a component under Other Services
+      if (component.name === "Core") {
+        // Set isParent flag to identify it as a group
+        component.isParent = true;
+        // Assign it to the Core group
+        component.groupId = "clv6h3a9a37836b7n4aul61snm"; // Core group ID
+        component.groupName = "Core"; 
+      }
+    });
+    
     // Group components by their groupId
     const groupMap = new Map<string, InstatusComponent[]>();
     
-    // Group name mapping to consolidate groups
-    const groupNameMap = new Map<string, string>();
-    
-    // First, find all unique groups using the groupId property and apply known group names
+    // First, organize all components by groupId
     deduplicatedComponents.forEach(component => {
-      if (component.groupId) {
-        // Check if we have a known name for this groupId
-        if (knownGroupNames[component.groupId]) {
-          // Store the mapping from groupId to display name
-          groupNameMap.set(component.groupId, knownGroupNames[component.groupId]);
+      // Skip components that should be treated as groups themselves
+      if (component.isParent) return;
+      
+      // Check if component has a groupId (could be group_id or groupId)
+      const groupId = component.groupId || component.group_id;
+      
+      if (groupId) {
+        if (!groupMap.has(groupId)) {
+          groupMap.set(groupId, []);
         }
-        
-        if (!groupMap.has(component.groupId)) {
-          groupMap.set(component.groupId, []);
-        }
-        groupMap.get(component.groupId)?.push(component);
+        groupMap.get(groupId)?.push(component);
       }
     });
     
@@ -421,96 +451,45 @@ export function StatusIndicator({ refreshTrigger = 0 }: { refreshTrigger?: numbe
     const processedGroups: ComponentGroup[] = [];
     // Track component IDs that have been assigned to groups
     const assignedComponentIds = new Set<string>();
-    // Track which groups should be excluded from top-level (they are subgroups)
-    const childGroupIds = new Set<string>(Object.keys(groupParentMap));
     
     // Process each group
-    let groupIndex = 0;
     groupMap.forEach((groupComponents, groupId) => {
-      // Skip child groups for now - we'll handle them later with their parents
-      if (childGroupIds.has(groupId)) {
-        return;
-      }
+      // Map the groupId to a known group name
+      const groupName = knownGroupNames[groupId] || "Unknown Group";
       
       // Mark all these components as assigned
       groupComponents.forEach(comp => assignedComponentIds.add(comp.id));
       
-      // Get the known group name if available
-      const knownGroupName = groupNameMap.get(groupId);
+      // Determine the overall status of this group based on its components
+      const groupStatus = determineGroupStatus(groupComponents) as StatusType;
       
-      // Check if there's a component with isParent=true in this group
-      const parentComponent = groupComponents.find(comp => comp.isParent === true);
-      
-      // Find any child groups for this parent
-      const childGroups: ComponentGroup[] = [];
-      Object.entries(groupParentMap).forEach(([childId, parentId]) => {
-        if (parentId === groupId && groupMap.has(childId)) {
-          const childComponents = groupMap.get(childId) || [];
-          // Mark child components as assigned
-          childComponents.forEach(comp => assignedComponentIds.add(comp.id));
-          
-          const childGroupName = knownGroupNames[childId] || 
-                                 childComponents.find(comp => comp.groupName)?.groupName || 
-                                 "Unknown Group";
-          
-          childGroups.push({
-            id: `group-${childId}-${groupIndex++}`,
-            name: childGroupName,
-            components: childComponents,
-            status: determineGroupStatus(childComponents) as StatusType
-          });
-        }
+      processedGroups.push({
+        id: `group-${groupId}`,
+        name: groupName,
+        components: [...groupComponents],
+        status: groupStatus
       });
-      
-      if (parentComponent) {
-        // Use group name from mapping, or parent component name
-        const groupStatus = determineGroupStatus(groupComponents);
-        
-        processedGroups.push({
-          id: `group-${groupId}-${groupIndex}`,
-          name: knownGroupName || parentComponent.name,
-          components: [...groupComponents],
-          status: groupStatus as StatusType,
-          childGroups: childGroups.length > 0 ? childGroups : undefined
-        } as ComponentGroup & { childGroups?: ComponentGroup[] });
-      } else if (groupComponents.length > 0) {
-        // If no parent component, use the proper group name if available
-        const groupStatus = determineGroupStatus(groupComponents);
-        
-        // First try known group name, then look for component with groupName
-        const componentWithGroupName = groupComponents.find(comp => comp.groupName);
-        
-        // Use the group name from our mapping if available, otherwise fallback
-        const groupName = knownGroupName || 
-                          componentWithGroupName?.groupName || 
-                          groupComponents[0].name;
-        
-        processedGroups.push({
-          id: `group-${groupId}-${groupIndex}`,
-          name: groupName,
-          components: [...groupComponents],
-          status: groupStatus as StatusType,
-          childGroups: childGroups.length > 0 ? childGroups : undefined
-        } as ComponentGroup & { childGroups?: ComponentGroup[] });
-      }
-      
-      // Increment group index for unique IDs
-      groupIndex++;
     });
     
-    // Find ungrouped components (those without a groupId or not assigned to a group)
-    const ungrouped = deduplicatedComponents.filter(component => 
-      !component.groupId && !assignedComponentIds.has(component.id)
-    );
+    // Find ungrouped components (those without a groupId)
+    const ungrouped = deduplicatedComponents.filter(component => {
+      // Skip components that are meant to be groups themselves
+      if (component.isParent) return false;
+      
+      const groupId = component.groupId || component.group_id;
+      return !groupId && !assignedComponentIds.has(component.id);
+    });
     
     // Sort groups to match the Instatus page order
     const sortedGroups = processedGroups.sort((a, b) => {
       // Custom order based on the actual Instatus page
       const groupOrder: Record<string, number> = {
         "Core": 1,
-        "Our Network & Datacentres": 2,
+        "Our Network & Datacentres": 2, 
         "VPS Hosts": 3,
-        "Other": 4
+        "United Kingdom - Coventry": 4,
+        "Canada - Kitchener": 5,
+        "Other": 6
       };
       
       const orderA = groupOrder[a.name] || 999;
@@ -520,6 +499,57 @@ export function StatusIndicator({ refreshTrigger = 0 }: { refreshTrigger?: numbe
     
     setComponentGroups(sortedGroups);
     setUngroupedComponents(ungrouped);
+  };
+
+  // Function to build a hierarchical tree of component groups
+  const buildGroupHierarchy = (groups: ComponentGroup[]) => {
+    // First identify top-level groups (those that are not children of any other group)
+    const topLevelGroupIds = groups
+      .map(group => group.id.replace('group-', ''))
+      .filter(groupId => !Object.values(groupParentMap).includes(groupId));
+    
+    // Build a map of parent groups to their child groups
+    const childrenMap: Record<string, string[]> = {};
+    
+    Object.entries(groupParentMap).forEach(([childId, parentId]) => {
+      if (!childrenMap[parentId]) {
+        childrenMap[parentId] = [];
+      }
+      childrenMap[parentId].push(childId);
+    });
+    
+    // Recursive function to build the tree
+    const buildGroupTree = (groupId: string): (ComponentGroup & { childGroups?: (ComponentGroup & { childGroups?: any })[] }) => {
+      const group = groups.find(g => g.id === `group-${groupId}`);
+      
+      if (!group) {
+        // This should not happen if our data is consistent
+        console.error(`Group with ID ${groupId} not found`);
+        return null as any;
+      }
+      
+      const childGroupIds = childrenMap[groupId] || [];
+      
+      if (childGroupIds.length === 0) {
+        // No children, return as is
+        return { ...group };
+      }
+      
+      // Build child groups recursively
+      const childGroups = childGroupIds
+        .map(childId => buildGroupTree(childId))
+        .filter(Boolean); // Remove any nulls
+      
+      return {
+        ...group,
+        childGroups
+      };
+    };
+    
+    // Build the tree starting from each top-level group
+    return topLevelGroupIds
+      .map(groupId => buildGroupTree(groupId))
+      .filter(Boolean); // Remove any nulls
   };
 
   useEffect(() => {
@@ -605,48 +635,243 @@ export function StatusIndicator({ refreshTrigger = 0 }: { refreshTrigger?: numbe
     )
   }
 
-  const statusInfo = statusData?.status?.indicator 
-    ? statusConfig[statusData.status.indicator as StatusType] || statusConfig.unknown
-    : statusConfig.unknown
+  if (!statusData || !statusData.status || statusData.status.indicator === "none") {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle>System Status</CardTitle>
+          </div>
+          <CardDescription>Unable to retrieve status information</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertTitle>Status Unavailable</AlertTitle>
+            <AlertDescription>
+              We're currently unable to retrieve status information. Please check back later.
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Build hierarchical tree of component groups
+  const topLevelGroups = componentGroups.filter(group => {
+    const groupIdWithoutPrefix = group.id.replace('group-', '');
+    return !Object.keys(groupParentMap).some(childId => 
+      groupParentMap[childId] === groupIdWithoutPrefix
+    );
+  });
 
   return (
     <Card>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
-          <CardTitle>Current Status</CardTitle>
-          <Badge className={statusInfo.color}>
-            <span className="flex items-center gap-1">
-              {statusInfo.icon}
-              {statusInfo.text}
-            </span>
-          </Badge>
+          <div>
+            <CardTitle>System Status</CardTitle>
+            <CardDescription>
+              Current status of our platform services
+            </CardDescription>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setLastUpdated(new Date())}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
         </div>
-        <CardDescription>Last updated: {isMounted ? lastUpdated.toLocaleString() : "Loading..."}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4 mt-4">
-          {componentGroups.length > 0 || ungroupedComponents.length > 0 ? (
-            <>
-              {componentGroups.map(group => (
-                <ComponentGroup key={group.id} group={group} />
-              ))}
-              
-              {ungroupedComponents.length > 0 && (
-                <div className="space-y-2 mt-6">
-                  <h3 className="text-sm font-medium text-muted-foreground pb-1 border-b">Other Services</h3>
-                  {ungroupedComponents.map(component => (
-                    <ComponentDetails key={component.id} component={component} />
-                  ))}
-                </div>
+        <div className="mb-6">
+          <Alert variant={statusData?.status?.indicator === "operational" ? "default" : "destructive"}>
+            <div className="flex items-center">
+              {statusData?.status?.indicator === "operational" ? (
+                <CheckCircle className="h-4 w-4 mr-2 text-green-500" />
+              ) : (
+                <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
               )}
-            </>
-          ) : (
-            <div className="flex items-center justify-center py-6 text-center">
-              <p className="text-muted-foreground">No components available</p>
+              <AlertTitle className="text-base font-medium">
+                {statusData?.status?.indicator === "operational"
+                  ? "All Systems Operational" 
+                  : "System Disruption Reported"}
+              </AlertTitle>
             </div>
-          )}
+            <AlertDescription className="mt-2">
+              {statusData?.status?.indicator === "operational"
+                ? "All Hyber systems are operating normally."
+                : "One or more Hyber systems are experiencing issues. See details below."}
+            </AlertDescription>
+          </Alert>
+        </div>
+
+        {/* Rendering top-level component groups */}
+        {topLevelGroups.map((group) => (
+          <ComponentGroup 
+            key={group.id} 
+            group={group} 
+            allGroups={componentGroups}
+            groupParentMap={groupParentMap}
+          />
+        ))}
+
+        {/* Render any ungrouped components */}
+        {ungroupedComponents.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-2">Other Services</h3>
+            {ungroupedComponents.map((component) => (
+              <ComponentStatusItem key={component.id} component={component} />
+            ))}
+          </div>
+        )}
+
+        <div className="mt-8 text-xs text-muted-foreground">
+          Last updated: {formatDistanceToNow(lastUpdated)} ago
         </div>
       </CardContent>
     </Card>
   )
+}
+
+interface NestedComponentGroupProps {
+  group: ComponentGroup & { childGroups?: ComponentGroup[] };
+  allGroups: ComponentGroup[];
+  groupParentMap: Record<string, string>;
+}
+
+// Update ComponentGroup to handle deeper nesting properly
+function NestedComponentGroup({ group, allGroups, groupParentMap }: NestedComponentGroupProps) {
+  const [isExpanded, setIsExpanded] = useState(true);
+  
+  // Find child groups based on parent-child mapping
+  const childGroups = allGroups.filter(childGroup => {
+    const childId = childGroup.id.replace('group-', '');
+    const parentId = group.id.replace('group-', '');
+    return groupParentMap[childId] === parentId;
+  });
+
+  // Determine if any component in this group or its children has issues
+  const hasIssues = useMemo(() => {
+    // Check direct components
+    const directIssue = group.components.some(
+      component => component.status !== "operational"
+    );
+    
+    // Check child group components recursively
+    const childIssue = childGroups.some(childGroup => 
+      childGroup.components.some(component => component.status !== "operational")
+    );
+    
+    return directIssue || childIssue;
+  }, [group.components, childGroups]);
+
+  // Auto-expand groups with issues
+  useEffect(() => {
+    if (hasIssues) {
+      setIsExpanded(true);
+    }
+  }, [hasIssues]);
+
+  return (
+    <div className="mb-6 border rounded-lg p-4">
+      <div 
+        className="flex items-center justify-between cursor-pointer" 
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
+        <div className="flex items-center">
+          <h3 className="text-lg font-medium">{group.name}</h3>
+          {hasIssues && (
+            <Badge variant="outline" className="ml-2 bg-amber-50 text-amber-700 border-amber-200">
+              Issues
+            </Badge>
+          )}
+        </div>
+        <Button variant="ghost" size="icon">
+          {isExpanded ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
+
+      {isExpanded && (
+        <div className="mt-4 space-y-3">
+          {/* Render this group's components */}
+          {group.components.map((component) => (
+            <ComponentStatusItem key={component.id} component={component} />
+          ))}
+
+          {/* Render child groups recursively */}
+          {childGroups.length > 0 && (
+            <div className="pl-4 mt-4 border-l-2 border-gray-100">
+              {childGroups.map(childGroup => (
+                <NestedComponentGroup 
+                  key={childGroup.id} 
+                  group={childGroup} 
+                  allGroups={allGroups}
+                  groupParentMap={groupParentMap}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ComponentStatusItem({ component }: { component: InstatusComponent }) {
+  const statusColors: Record<StatusType, { bg: string, text: string, icon: ReactNode }> = {
+    "operational": { 
+      bg: "bg-green-50", 
+      text: "text-green-700",
+      icon: <CheckCircle className="h-4 w-4 text-green-500" />
+    },
+    "degraded_performance": { 
+      bg: "bg-amber-50", 
+      text: "text-amber-700",
+      icon: <AlertTriangle className="h-4 w-4 text-amber-500" />
+    },
+    "partial_outage": { 
+      bg: "bg-orange-50", 
+      text: "text-orange-700",
+      icon: <AlertOctagon className="h-4 w-4 text-orange-500" />
+    },
+    "major_outage": { 
+      bg: "bg-red-50", 
+      text: "text-red-700",
+      icon: <XCircle className="h-4 w-4 text-red-500" />
+    },
+    "under_maintenance": { 
+      bg: "bg-blue-50", 
+      text: "text-blue-700",
+      icon: <Settings className="h-4 w-4 text-blue-500" />
+    },
+    "unknown": { 
+      bg: "bg-gray-50", 
+      text: "text-gray-700",
+      icon: <AlertCircle className="h-4 w-4 text-gray-500" />
+    }
+  };
+
+  const status = component.status as StatusType || "operational";
+  const colors = statusColors[status];
+
+  return (
+    <div className={`flex items-center justify-between p-3 rounded-md ${colors.bg}`}>
+      <div className="flex items-center">
+        {colors.icon}
+        <span className="ml-2 font-medium">{component.name}</span>
+      </div>
+      <Badge variant="outline" className={`${colors.bg} ${colors.text} border-none`}>
+        {formatStatus(status)}
+      </Badge>
+    </div>
+  );
+}
+
+function formatStatus(status: StatusType): string {
+  return status
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
