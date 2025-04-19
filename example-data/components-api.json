@@ -1,1 +1,403 @@
-{"success":true,"data":[{"id":"clv6gn6rh24036ben48oncticm","name":"Our Website","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":true,"createdAt":"2024-04-19T09:20:51.197Z","updatedAt":"2025-03-14T09:32:39.351Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-website-t71vuihyd@automation.instatus.com","oldGroup":null,"groupId":"clv6h3a9a37836b7n4aul61snm","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Our Website</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"clv6h3a9a37836b7n4aul61snm","name":"Core","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":false,"createdAt":"2024-04-19T09:33:22.222Z","updatedAt":"2025-03-14T09:32:39.341Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-core-8me2zudw7@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Core</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"clv6gn6ro24043ben4xl81kd2j","name":"Billing Panel (clientarea)","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":true,"createdAt":"2024-04-19T09:20:51.204Z","updatedAt":"2025-03-14T09:32:39.351Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-clientarea-q5n0jhinj@automation.instatus.com","oldGroup":null,"groupId":"clv6h3a9a37836b7n4aul61snm","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Billing Panel (clientarea)</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"clv6h3a9a37836b7n4aul61snm","name":"Core","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":false,"createdAt":"2024-04-19T09:33:22.222Z","updatedAt":"2025-03-14T09:32:39.341Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-core-8me2zudw7@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Core</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"clv6h3a9a37836b7n4aul61snm","name":"Core","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":false,"createdAt":"2024-04-19T09:33:22.222Z","updatedAt":"2025-03-14T09:32:39.341Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-core-8me2zudw7@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Core</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":null,"translations":{"name":null,"description":null}},{"id":"clv6j4mo288380b7n4njtjd2y6","name":"Our Network & Datacentres","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":false,"createdAt":"2024-04-19T10:30:24.194Z","updatedAt":"2025-03-14T09:34:01.733Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-network-and-datacentres-n220huh6t@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Our Network &amp; Datacentres</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":null,"translations":{"name":null,"description":null}},{"id":"clv6j5mg688759b7n498y9tc4f","name":" Network (AS51692)","nameTranslationId":null,"description":"Our Primary Network","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":true,"createdAt":"2024-04-19T10:31:10.566Z","updatedAt":"2025-03-14T09:32:39.349Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-gb-or-our-uk-network-as51692-x00jtxh69@automation.instatus.com","oldGroup":null,"groupId":"clv6j4mo288380b7n4njtjd2y6","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Network (AS51692)</p>","nameHtmlTranslationId":null,"descriptionHtml":"<p>Our Primary Network</p>","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"clv6j4mo288380b7n4njtjd2y6","name":"Our Network & Datacentres","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":false,"createdAt":"2024-04-19T10:30:24.194Z","updatedAt":"2025-03-14T09:34:01.733Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-network-and-datacentres-n220huh6t@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Our Network &amp; Datacentres</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"clv6j6dpr89748b7n4bi5axn35","name":"Network (AS27498)","nameTranslationId":null,"description":"Our Canada Network - In Partnership with SacredServers ","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":true,"createdAt":"2024-04-19T10:31:45.903Z","updatedAt":"2025-04-15T15:54:25.170Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-gb-or-canada-network-as27498-kmbuu3npz@automation.instatus.com","oldGroup":null,"groupId":"clv6j4mo288380b7n4njtjd2y6","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Network (AS27498)</p>","nameHtmlTranslationId":null,"descriptionHtml":"<p>Our Canada Network - In Partnership with SacredServers </p>","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"clv6j4mo288380b7n4njtjd2y6","name":"Our Network & Datacentres","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":false,"createdAt":"2024-04-19T10:30:24.194Z","updatedAt":"2025-03-14T09:34:01.733Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-network-and-datacentres-n220huh6t@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Our Network &amp; Datacentres</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"clv6k2jyt122223ben4yo7j2uuw","name":"H-1","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":true,"createdAt":"2024-04-19T10:56:46.997Z","updatedAt":"2025-03-14T09:32:39.418Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-h-1-4s2k3mdwp@automation.instatus.com","oldGroup":null,"groupId":"cm3gndhg3001a11zaya64z4le","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>H-1</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm3gndhg3001a11zaya64z4le","name":"United Kingdom - Coventry","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":false,"createdAt":"2024-11-14T01:44:36.244Z","updatedAt":"2025-03-14T09:33:23.729Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-continuity-house-yum1fsnjq@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>United Kingdom - Coventry</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"clv6k2qjj120859b7n420h1u6m1","name":"H-2","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":true,"createdAt":"2024-04-19T10:56:55.519Z","updatedAt":"2025-03-14T09:34:55.872Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-h-2-85nig6p7n@automation.instatus.com","oldGroup":null,"groupId":"cm3gndhg3001a11zaya64z4le","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>H-2</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm3gndhg3001a11zaya64z4le","name":"United Kingdom - Coventry","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":false,"createdAt":"2024-11-14T01:44:36.244Z","updatedAt":"2025-03-14T09:33:23.729Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-continuity-house-yum1fsnjq@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>United Kingdom - Coventry</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"clv6k3a32123781ben4v9e3byrl","name":"K-10","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":4,"showUptime":true,"createdAt":"2024-04-19T10:57:20.846Z","updatedAt":"2025-04-15T15:54:25.187Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-k-1-rso0cys0m@automation.instatus.com","oldGroup":null,"groupId":"cm3gnf9yg001c11zafuwsigff","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>K-10</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm3gnf9yg001c11zafuwsigff","name":"Canada - Kitchener","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":false,"createdAt":"2024-11-14T01:45:59.849Z","updatedAt":"2025-03-14T09:33:21.536Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-kitchener-krm5mqw9s@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Canada - Kitchener</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"clv6k4xhm125441ben43tblgfjv","name":"VPS Control Panel","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":3,"showUptime":true,"createdAt":"2024-04-19T10:58:37.834Z","updatedAt":"2025-04-17T18:49:47.122Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-vps-control-panel-r52ju8ta4@automation.instatus.com","oldGroup":null,"groupId":"clv6h3a9a37836b7n4aul61snm","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>VPS Control Panel</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"clv6h3a9a37836b7n4aul61snm","name":"Core","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":false,"createdAt":"2024-04-19T09:33:22.222Z","updatedAt":"2025-03-14T09:32:39.341Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-core-8me2zudw7@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Core</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"clvcni0v846541bhmu08f51cni","name":"Shared Web Hosting (GB-W-1)","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":true,"createdAt":"2024-04-23T17:19:24.644Z","updatedAt":"2025-03-14T09:32:39.350Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-gb-or-web-1-4bqdmahhm@automation.instatus.com","oldGroup":null,"groupId":"cm4sv3i6t0001o9xqzch34uwy","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Shared Web Hosting (GB-W-1)</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm4sv3i6t0001o9xqzch34uwy","name":"Other","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":5,"showUptime":false,"createdAt":"2024-12-17T19:33:44.021Z","updatedAt":"2025-03-14T09:32:39.341Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-other-b852nc3mk@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Other</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"cm3gndhg3001a11zaya64z4le","name":"United Kingdom - Coventry","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":false,"createdAt":"2024-11-14T01:44:36.244Z","updatedAt":"2025-03-14T09:33:23.729Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-continuity-house-yum1fsnjq@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>United Kingdom - Coventry</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm4sxvcyk0001n8yq2l4rqrt1","name":"VPS Hosts","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":3,"showUptime":false,"createdAt":"2024-12-17T20:51:22.844Z","updatedAt":"2025-03-14T09:32:39.340Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-canada-ca-dmvumtiw1@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>VPS Hosts</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"cm3gnf9yg001c11zafuwsigff","name":"Canada - Kitchener","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":false,"createdAt":"2024-11-14T01:45:59.849Z","updatedAt":"2025-03-14T09:33:21.536Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-kitchener-krm5mqw9s@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Canada - Kitchener</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm4sxvcyk0001n8yq2l4rqrt1","name":"VPS Hosts","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":3,"showUptime":false,"createdAt":"2024-12-17T20:51:22.844Z","updatedAt":"2025-03-14T09:32:39.340Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-canada-ca-dmvumtiw1@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>VPS Hosts</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"cm3gnieqd0001drontj9azsss","name":"H-3","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":3,"showUptime":true,"createdAt":"2024-11-14T01:48:26.006Z","updatedAt":"2025-03-14T09:32:39.418Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-h-3-3dr9bj84s@automation.instatus.com","oldGroup":null,"groupId":"cm3gndhg3001a11zaya64z4le","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>H-3</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm3gndhg3001a11zaya64z4le","name":"United Kingdom - Coventry","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":false,"createdAt":"2024-11-14T01:44:36.244Z","updatedAt":"2025-03-14T09:33:23.729Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-continuity-house-yum1fsnjq@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>United Kingdom - Coventry</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"cm4sv3i6t0001o9xqzch34uwy","name":"Other","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":5,"showUptime":false,"createdAt":"2024-12-17T19:33:44.021Z","updatedAt":"2025-03-14T09:32:39.341Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-other-b852nc3mk@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Other</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":null,"translations":{"name":null,"description":null}},{"id":"cm4sv5w0l0001pi0557h1kxzv","name":"Reverse DNS Services","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":true,"createdAt":"2024-12-17T19:35:35.253Z","updatedAt":"2025-03-14T09:32:39.350Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-reverse-dns-services-l89lrr38j@automation.instatus.com","oldGroup":null,"groupId":"cm4sv3i6t0001o9xqzch34uwy","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Reverse DNS Services</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm4sv3i6t0001o9xqzch34uwy","name":"Other","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":5,"showUptime":false,"createdAt":"2024-12-17T19:33:44.021Z","updatedAt":"2025-03-14T09:32:39.341Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-other-b852nc3mk@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Other</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"cm4sxvcyk0001n8yq2l4rqrt1","name":"VPS Hosts","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":3,"showUptime":false,"createdAt":"2024-12-17T20:51:22.844Z","updatedAt":"2025-03-14T09:32:39.340Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-canada-ca-dmvumtiw1@automation.instatus.com","oldGroup":null,"groupId":null,"isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>VPS Hosts</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":null,"translations":{"name":null,"description":null}},{"id":"cm88kv07n001cgt7xpy96ot7p","name":"K-1","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":1,"showUptime":true,"createdAt":"2025-03-14T09:30:37.140Z","updatedAt":"2025-04-15T15:54:25.204Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-k-1-zop5au3m1@automation.instatus.com","oldGroup":null,"groupId":"cm3gnf9yg001c11zafuwsigff","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>K-1</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm3gnf9yg001c11zafuwsigff","name":"Canada - Kitchener","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":false,"createdAt":"2024-11-14T01:45:59.849Z","updatedAt":"2025-03-14T09:33:21.536Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-kitchener-krm5mqw9s@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Canada - Kitchener</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"cm88kv92x0001l66pvn1h4gdi","name":"K-2","nameTranslationId":null,"description":"This server is currently off in reserve.","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":true,"createdAt":"2025-03-14T09:30:48.633Z","updatedAt":"2025-04-15T15:54:25.221Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-k-2-2hm47et1i@automation.instatus.com","oldGroup":null,"groupId":"cm3gnf9yg001c11zafuwsigff","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>K-2</p>","nameHtmlTranslationId":null,"descriptionHtml":"<p>This server is currently off in reserve.</p>","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm3gnf9yg001c11zafuwsigff","name":"Canada - Kitchener","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":false,"createdAt":"2024-11-14T01:45:59.849Z","updatedAt":"2025-03-14T09:33:21.536Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-kitchener-krm5mqw9s@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Canada - Kitchener</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}},{"id":"cm88kvpfc0027vvprh15og6r3","name":"K-6 & K-7 Cluster","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":3,"showUptime":true,"createdAt":"2025-03-14T09:31:09.816Z","updatedAt":"2025-04-15T15:54:25.239Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-k-6-and-k-7-cluster-two8wns2h@automation.instatus.com","oldGroup":null,"groupId":"cm3gnf9yg001c11zafuwsigff","isParent":false,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>K-6 &amp; K-7 Cluster</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"group":{"id":"cm3gnf9yg001c11zafuwsigff","name":"Canada - Kitchener","nameTranslationId":null,"description":"","descriptionTranslationId":null,"status":"OPERATIONAL","internalStatus":"OPERATIONAL","order":2,"showUptime":false,"createdAt":"2024-11-14T01:45:59.849Z","updatedAt":"2025-03-14T09:33:21.536Z","archivedAt":null,"siteId":"clv6gn6q424009ben4vg65vfnv","uniqueEmail":"hyber-nodes-kitchener-krm5mqw9s@automation.instatus.com","oldGroup":null,"groupId":"cm4sxvcyk0001n8yq2l4rqrt1","isParent":true,"isCollapsed":false,"thirdPartyMonitorId":null,"nameHtml":"<p>Canada - Kitchener</p>","nameHtmlTranslationId":null,"descriptionHtml":"","descriptionHtmlTranslationId":null,"isThirdParty":false,"thirdPartyStatus":null,"thirdPartyComponentId":null,"thirdPartyComponentServiceId":null,"importedFromStatuspage":false,"startDate":null,"translations":{"name":null,"description":null}},"translations":{"name":null,"description":null}}]}
+{
+    "success": true,
+    "data": [
+        {
+            "id": "clv6h3a9a37836b7n4aul61snm",
+            "name": "Core",
+            "description": "",
+            "status": "OPERATIONAL",
+            "internalStatus": "OPERATIONAL",
+            "order": 1,
+            "showUptime": false,
+            "createdAt": "2024-04-19T09:33:22.222Z",
+            "updatedAt": "2025-03-14T09:32:39.341Z",
+            "uniqueEmail": "filtered@hyberhost.com",
+            "groupId": null,
+            "isParent": true,
+            "isCollapsed": false,
+            "startDate": null,
+            "group": null,
+            "children": [
+                {
+                    "id": "clv6gn6rh24036ben48oncticm",
+                    "name": "Our Website",
+                    "description": "",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 1,
+                    "showUptime": true,
+                    "createdAt": "2024-04-19T09:20:51.197Z",
+                    "updatedAt": "2025-03-14T09:32:39.351Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "clv6h3a9a37836b7n4aul61snm",
+                    "isParent": false,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "clv6h3a9a37836b7n4aul61snm"
+                    },
+                    "children": []
+                },
+                {
+                    "id": "clv6gn6ro24043ben4xl81kd2j",
+                    "name": "Billing Panel (clientarea)",
+                    "description": "",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 2,
+                    "showUptime": true,
+                    "createdAt": "2024-04-19T09:20:51.204Z",
+                    "updatedAt": "2025-03-14T09:32:39.351Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "clv6h3a9a37836b7n4aul61snm",
+                    "isParent": false,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "clv6h3a9a37836b7n4aul61snm"
+                    },
+                    "children": []
+                },
+                {
+                    "id": "clv6k4xhm125441ben43tblgfjv",
+                    "name": "VPS Control Panel",
+                    "description": "",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 3,
+                    "showUptime": true,
+                    "createdAt": "2024-04-19T10:58:37.834Z",
+                    "updatedAt": "2025-04-17T18:49:47.122Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "clv6h3a9a37836b7n4aul61snm",
+                    "isParent": false,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "clv6h3a9a37836b7n4aul61snm"
+                    },
+                    "children": []
+                }
+            ]
+        },
+        {
+            "id": "clv6j4mo288380b7n4njtjd2y6",
+            "name": "Our Network & Datacentres",
+            "description": "",
+            "status": "OPERATIONAL",
+            "internalStatus": "OPERATIONAL",
+            "order": 2,
+            "showUptime": false,
+            "createdAt": "2024-04-19T10:30:24.194Z",
+            "updatedAt": "2025-03-14T09:34:01.733Z",
+            "uniqueEmail": "filtered@hyberhost.com",
+            "groupId": null,
+            "isParent": true,
+            "isCollapsed": false,
+            "startDate": null,
+            "group": null,
+            "children": [
+                {
+                    "id": "clv6j5mg688759b7n498y9tc4f",
+                    "name": " Network (AS51692)",
+                    "description": "Our Primary Network",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 1,
+                    "showUptime": true,
+                    "createdAt": "2024-04-19T10:31:10.566Z",
+                    "updatedAt": "2025-03-14T09:32:39.349Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "clv6j4mo288380b7n4njtjd2y6",
+                    "isParent": false,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "clv6j4mo288380b7n4njtjd2y6"
+                    },
+                    "children": []
+                },
+                {
+                    "id": "clv6j6dpr89748b7n4bi5axn35",
+                    "name": "Network (AS27498)",
+                    "description": "Our Canada Network - In Partnership with SacredServers ",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 2,
+                    "showUptime": true,
+                    "createdAt": "2024-04-19T10:31:45.903Z",
+                    "updatedAt": "2025-04-15T15:54:25.170Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "clv6j4mo288380b7n4njtjd2y6",
+                    "isParent": false,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "clv6j4mo288380b7n4njtjd2y6"
+                    },
+                    "children": []
+                }
+            ]
+        },
+        {
+            "id": "cm4sv3i6t0001o9xqzch34uwy",
+            "name": "Other",
+            "description": "",
+            "status": "OPERATIONAL",
+            "internalStatus": "OPERATIONAL",
+            "order": 5,
+            "showUptime": false,
+            "createdAt": "2024-12-17T19:33:44.021Z",
+            "updatedAt": "2025-03-14T09:32:39.341Z",
+            "uniqueEmail": "filtered@hyberhost.com",
+            "groupId": null,
+            "isParent": true,
+            "isCollapsed": false,
+            "startDate": null,
+            "group": null,
+            "children": [
+                {
+                    "id": "clvcni0v846541bhmu08f51cni",
+                    "name": "Shared Web Hosting (GB-W-1)",
+                    "description": "",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 1,
+                    "showUptime": true,
+                    "createdAt": "2024-04-23T17:19:24.644Z",
+                    "updatedAt": "2025-03-14T09:32:39.350Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "cm4sv3i6t0001o9xqzch34uwy",
+                    "isParent": false,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "cm4sv3i6t0001o9xqzch34uwy"
+                    },
+                    "children": []
+                },
+                {
+                    "id": "cm4sv5w0l0001pi0557h1kxzv",
+                    "name": "Reverse DNS Services",
+                    "description": "",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 2,
+                    "showUptime": true,
+                    "createdAt": "2024-12-17T19:35:35.253Z",
+                    "updatedAt": "2025-03-14T09:32:39.350Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "cm4sv3i6t0001o9xqzch34uwy",
+                    "isParent": false,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "cm4sv3i6t0001o9xqzch34uwy"
+                    },
+                    "children": []
+                }
+            ]
+        },
+        {
+            "id": "cm4sxvcyk0001n8yq2l4rqrt1",
+            "name": "VPS Hosts",
+            "description": "",
+            "status": "OPERATIONAL",
+            "internalStatus": "OPERATIONAL",
+            "order": 3,
+            "showUptime": false,
+            "createdAt": "2024-12-17T20:51:22.844Z",
+            "updatedAt": "2025-03-14T09:32:39.340Z",
+            "uniqueEmail": "filtered@hyberhost.com",
+            "groupId": null,
+            "isParent": true,
+            "isCollapsed": false,
+            "startDate": null,
+            "group": null,
+            "children": [
+                {
+                    "id": "cm3gndhg3001a11zaya64z4le",
+                    "name": "United Kingdom - Coventry",
+                    "description": "",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 1,
+                    "showUptime": false,
+                    "createdAt": "2024-11-14T01:44:36.244Z",
+                    "updatedAt": "2025-03-14T09:33:23.729Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "cm4sxvcyk0001n8yq2l4rqrt1",
+                    "isParent": true,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "cm4sxvcyk0001n8yq2l4rqrt1"
+                    },
+                    "children": [
+                        {
+                            "id": "clv6k2jyt122223ben4yo7j2uuw",
+                            "name": "H-1",
+                            "description": "",
+                            "status": "OPERATIONAL",
+                            "internalStatus": "OPERATIONAL",
+                            "order": 1,
+                            "showUptime": true,
+                            "createdAt": "2024-04-19T10:56:46.997Z",
+                            "updatedAt": "2025-03-14T09:32:39.418Z",
+                            "uniqueEmail": "filtered@hyberhost.com",
+                            "groupId": "cm3gndhg3001a11zaya64z4le",
+                            "isParent": false,
+                            "isCollapsed": false,
+                            "startDate": null,
+                            "group": {
+                                "id": "cm3gndhg3001a11zaya64z4le"
+                            },
+                            "children": []
+                        },
+                        {
+                            "id": "clv6k2qjj120859b7n420h1u6m1",
+                            "name": "H-2",
+                            "description": "",
+                            "status": "OPERATIONAL",
+                            "internalStatus": "OPERATIONAL",
+                            "order": 2,
+                            "showUptime": true,
+                            "createdAt": "2024-04-19T10:56:55.519Z",
+                            "updatedAt": "2025-03-14T09:34:55.872Z",
+                            "uniqueEmail": "filtered@hyberhost.com",
+                            "groupId": "cm3gndhg3001a11zaya64z4le",
+                            "isParent": false,
+                            "isCollapsed": false,
+                            "startDate": null,
+                            "group": {
+                                "id": "cm3gndhg3001a11zaya64z4le"
+                            },
+                            "children": []
+                        },
+                        {
+                            "id": "cm3gnieqd0001drontj9azsss",
+                            "name": "H-3",
+                            "description": "",
+                            "status": "OPERATIONAL",
+                            "internalStatus": "OPERATIONAL",
+                            "order": 3,
+                            "showUptime": true,
+                            "createdAt": "2024-11-14T01:48:26.006Z",
+                            "updatedAt": "2025-03-14T09:32:39.418Z",
+                            "uniqueEmail": "filtered@hyberhost.com",
+                            "groupId": "cm3gndhg3001a11zaya64z4le",
+                            "isParent": false,
+                            "isCollapsed": false,
+                            "startDate": null,
+                            "group": {
+                                "id": "cm3gndhg3001a11zaya64z4le"
+                            },
+                            "children": []
+                        }
+                    ]
+                },
+                {
+                    "id": "cm3gnf9yg001c11zafuwsigff",
+                    "name": "Canada - Kitchener",
+                    "description": "",
+                    "status": "OPERATIONAL",
+                    "internalStatus": "OPERATIONAL",
+                    "order": 2,
+                    "showUptime": false,
+                    "createdAt": "2024-11-14T01:45:59.849Z",
+                    "updatedAt": "2025-03-14T09:33:21.536Z",
+                    "uniqueEmail": "filtered@hyberhost.com",
+                    "groupId": "cm4sxvcyk0001n8yq2l4rqrt1",
+                    "isParent": true,
+                    "isCollapsed": false,
+                    "startDate": null,
+                    "group": {
+                        "id": "cm4sxvcyk0001n8yq2l4rqrt1"
+                    },
+                    "children": [
+                        {
+                            "id": "clv6k3a32123781ben4v9e3byrl",
+                            "name": "K-10",
+                            "description": "",
+                            "status": "OPERATIONAL",
+                            "internalStatus": "OPERATIONAL",
+                            "order": 4,
+                            "showUptime": true,
+                            "createdAt": "2024-04-19T10:57:20.846Z",
+                            "updatedAt": "2025-04-15T15:54:25.187Z",
+                            "uniqueEmail": "filtered@hyberhost.com",
+                            "groupId": "cm3gnf9yg001c11zafuwsigff",
+                            "isParent": false,
+                            "isCollapsed": false,
+                            "startDate": null,
+                            "group": {
+                                "id": "cm3gnf9yg001c11zafuwsigff"
+                            },
+                            "children": []
+                        },
+                        {
+                            "id": "cm88kv07n001cgt7xpy96ot7p",
+                            "name": "K-1",
+                            "description": "",
+                            "status": "OPERATIONAL",
+                            "internalStatus": "OPERATIONAL",
+                            "order": 1,
+                            "showUptime": true,
+                            "createdAt": "2025-03-14T09:30:37.140Z",
+                            "updatedAt": "2025-04-15T15:54:25.204Z",
+                            "uniqueEmail": "filtered@hyberhost.com",
+                            "groupId": "cm3gnf9yg001c11zafuwsigff",
+                            "isParent": false,
+                            "isCollapsed": false,
+                            "startDate": null,
+                            "group": {
+                                "id": "cm3gnf9yg001c11zafuwsigff"
+                            },
+                            "children": []
+                        },
+                        {
+                            "id": "cm88kv92x0001l66pvn1h4gdi",
+                            "name": "K-2",
+                            "description": "This server is currently off in reserve.",
+                            "status": "OPERATIONAL",
+                            "internalStatus": "OPERATIONAL",
+                            "order": 2,
+                            "showUptime": true,
+                            "createdAt": "2025-03-14T09:30:48.633Z",
+                            "updatedAt": "2025-04-15T15:54:25.221Z",
+                            "uniqueEmail": "filtered@hyberhost.com",
+                            "groupId": "cm3gnf9yg001c11zafuwsigff",
+                            "isParent": false,
+                            "isCollapsed": false,
+                            "startDate": null,
+                            "group": {
+                                "id": "cm3gnf9yg001c11zafuwsigff"
+                            },
+                            "children": []
+                        },
+                        {
+                            "id": "cm88kvpfc0027vvprh15og6r3",
+                            "name": "K-6 & K-7 Cluster",
+                            "description": "",
+                            "status": "OPERATIONAL",
+                            "internalStatus": "OPERATIONAL",
+                            "order": 3,
+                            "showUptime": true,
+                            "createdAt": "2025-03-14T09:31:09.816Z",
+                            "updatedAt": "2025-04-15T15:54:25.239Z",
+                            "uniqueEmail": "filtered@hyberhost.com",
+                            "groupId": "cm3gnf9yg001c11zafuwsigff",
+                            "isParent": false,
+                            "isCollapsed": false,
+                            "startDate": null,
+                            "group": {
+                                "id": "cm3gnf9yg001c11zafuwsigff"
+                            },
+                            "children": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

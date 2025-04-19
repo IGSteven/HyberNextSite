@@ -42,8 +42,7 @@ export async function InstatusRequest (endpoint:string="", data:object={}){
         headers: {
             Authorization: `Bearer ${INSTATUS_API_KEY}`,
             "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        }
         })
     
         if (!response.ok) {
@@ -80,8 +79,7 @@ export async function InstatusRequestNoCache (endpoint:string="", data:object={}
         headers: {
             Authorization: `Bearer ${INSTATUS_API_KEY}`,
             "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        }
         })
     
         if (!response.ok) {
@@ -90,7 +88,7 @@ export async function InstatusRequestNoCache (endpoint:string="", data:object={}
     
         const result = await response.json()
         return result
-        
+
     } catch (error) {
         console.error("Error in InstatusRequest:", error)
         throw error
