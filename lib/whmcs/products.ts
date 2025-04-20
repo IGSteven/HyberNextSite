@@ -5,7 +5,7 @@
  * This module provides functions to interact with the WHMCS API for user management.
  */
 
-const { apicall } = require("./index.ts");
+import { apicall } from "./index";
 
 // Types
 export interface Product {
