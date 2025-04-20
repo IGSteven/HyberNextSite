@@ -10,7 +10,7 @@ const INSTATUS_SITE_endpoint = process.env.INSTATUS_SITE_endpoint || ""
 const INSTATUS_API_KEY = process.env.INSTATUS_API_KEY || ""
 const INSTATUS_PAGE_ID = process.env.INSTATUS_SITE_ID || "clv6gn6q424009ben4vg65vfnv"
 const INSTATUS_API_endpoint = "https://api.instatus.com/v1"
-const CACHE_TTL = 60 // 30 seconds cache
+const CACHE_TTL = 25 // 30 seconds cache
 const CACHE = new Map<string, { data: any; timestamp: number }>() // Cache storage with TTL
 
 /**
@@ -21,7 +21,7 @@ const CACHE = new Map<string, { data: any; timestamp: number }>() // Cache stora
  */
 
 export async function InstatusRequest (endpoint:string="", data:object={}){
-    const cacheKey = JSON.stringify(data)
+    const cacheKey = JSON.stringify(endpoint)
     const now = Date.now()
     
     // Check cache first
@@ -65,7 +65,7 @@ export async function InstatusRequest (endpoint:string="", data:object={}){
  * @returns 
  */
 export async function InstatusRequestNoCache (endpoint:string="", data:object={}){
-    const cacheKey = JSON.stringify(data)
+    const cacheKey = JSON.stringify(endpoint)
     
     // Validate API key
     if (!INSTATUS_API_KEY) {
