@@ -575,6 +575,18 @@ const NotificationComponentSelector = ({
   );
 };
 
+// Helper to format date consistently for UI display
+const formatLastUpdated = (date: Date): string => {
+  return date.toLocaleString("en-US", {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: true
+  });
+};
+
 // Main status page client component
 export default function StatusPageClient() {
   const [components, setComponents] = useState<Component[]>([]);
@@ -583,6 +595,7 @@ export default function StatusPageClient() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [formattedLastUpdated, setFormattedLastUpdated] = useState<string>('');
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const [notifyAll, setNotifyAll] = useState<boolean>(true);
   const [subscribing, setSubscribing] = useState<boolean>(false);
@@ -613,7 +626,10 @@ export default function StatusPageClient() {
       setComponents(componentsData?.data || []);
       setIncidents(incidentsData || []);
       setMaintenances(maintenancesData || []);
-      setLastUpdated(new Date());
+      
+      const newDate = new Date();
+      setLastUpdated(newDate);
+      setFormattedLastUpdated(formatLastUpdated(newDate));
     } catch (err) {
       console.error("Error fetching status data:", err);
       setError((err as Error).message);
@@ -621,6 +637,11 @@ export default function StatusPageClient() {
       setLoading(false);
     }
   };
+
+  // Initialize formatted date on first render
+  useEffect(() => {
+    setFormattedLastUpdated(formatLastUpdated(lastUpdated));
+  }, []);
 
   useEffect(() => {
     fetchStatusData();
@@ -1165,14 +1186,7 @@ export default function StatusPageClient() {
             <RefreshCw className="h-4 w-4 mr-2" />
             <span>
               Auto-refreshes every 60 seconds · Last updated:{" "}
-              {lastUpdated.toLocaleString("en-US", {
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                second: 'numeric',
-                hour12: true
-              })}
+              {formattedLastUpdated}
             </span>
           </div>
           <div className="flex justify-center gap-4">
