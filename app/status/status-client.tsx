@@ -5,10 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, AlertTriangle, AlertCircle, RefreshCw, Rss, ExternalLink, Loader2, Clock } from "lucide-react";
+import { CheckCircle, AlertTriangle, AlertCircle, RefreshCw, Rss, ExternalLink, Loader2, Clock, Mail, Slack, MessageSquare, Webhook, Bell } from "lucide-react";
+import { Discord, MsTeams, WebhookIcon } from "./status-icons";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/use-toast";
+import { BellRing } from "lucide-react";
 
 // Component interfaces and helper functions
 interface ComponentChild {
@@ -458,6 +467,114 @@ const MaintenanceItem = ({ maintenance }: { maintenance: Maintenance }) => {
   );
 };
 
+// Component selection item with recursive rendering for children
+const ComponentSelectionItem = ({ 
+  component, 
+  selectedComponents, 
+  onSelectionChange, 
+  prefix 
+}: { 
+  component: Component | ComponentChild; 
+  selectedComponents: string[]; 
+  onSelectionChange: (component: Component | ComponentChild, checked: boolean) => void;
+  prefix: string;
+}) => {
+  const hasChildren = component.children && component.children.length > 0;
+  
+  return (
+    <div className="mt-1">
+      <div className="flex items-center space-x-2">
+        <Checkbox 
+          id={`component-${prefix}-${component.id}`} 
+          value={component.id}
+          checked={selectedComponents.includes(component.id)}
+          onCheckedChange={(checked) => onSelectionChange(component, checked === true)}
+        />
+        <Label htmlFor={`component-${prefix}-${component.id}`} className="text-xs font-medium">{component.name}</Label>
+      </div>
+      
+      {hasChildren && (
+        <div className="ml-6 mt-1 space-y-1">
+          {component.children?.map(child => (
+            <ComponentSelectionItem 
+              key={child.id} 
+              component={child} 
+              selectedComponents={selectedComponents}
+              onSelectionChange={onSelectionChange}
+              prefix={prefix}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Reusable component for the notification selection forms
+const NotificationComponentSelector = ({
+  components,
+  selectedComponents,
+  onSelectionChange,
+  prefix,
+  notifyAll,
+  setNotifyAll
+}: {
+  components: Component[];
+  selectedComponents: string[];
+  onSelectionChange: (component: Component | ComponentChild, checked: boolean) => void;
+  prefix: string;
+  notifyAll: boolean;
+  setNotifyAll: (value: boolean) => void;
+}) => {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="flex items-center space-x-2">
+          <Checkbox 
+            id={`notifyAll-${prefix}`} 
+            checked={notifyAll}
+            onCheckedChange={(checked) => setNotifyAll(checked === true)}
+          />
+          <Label htmlFor={`notifyAll-${prefix}`}>Notify me about all Services</Label>
+        </div>
+      </div>
+      {!notifyAll && (
+        <div className="border rounded-md p-3 mt-2">
+          <Label className="block mb-2 text-xs">Select specific components:</Label>
+          <div className="space-y-2 max-h-40 overflow-y-auto text-xs">
+            {components.map(component => (
+              <div key={component.id}>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`component-${prefix}-${component.id}`} 
+                    value={component.id}
+                    checked={selectedComponents.includes(component.id)}
+                    onCheckedChange={(checked) => onSelectionChange(component, checked === true)}
+                  />
+                  <Label htmlFor={`component-${prefix}-${component.id}`} className="text-xs font-medium">{component.name}</Label>
+                </div>
+                {component.children && component.children.length > 0 && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {component.children.map(child => (
+                      <ComponentSelectionItem 
+                        key={child.id} 
+                        component={child} 
+                        selectedComponents={selectedComponents}
+                        onSelectionChange={onSelectionChange}
+                        prefix={prefix}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Main status page client component
 export default function StatusPageClient() {
   const [components, setComponents] = useState<Component[]>([]);
@@ -467,6 +584,21 @@ export default function StatusPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+  const [notifyAll, setNotifyAll] = useState<boolean>(true);
+  const [subscribing, setSubscribing] = useState<boolean>(false);
+  const [selectedComponents, setSelectedComponents] = useState<string[]>([]);
+
+  // Form states for different notification channels
+  const [emailValue, setEmailValue] = useState<string>('');
+  const [webhookValue, setWebhookValue] = useState<string>('');
+  const [discordValue, setDiscordValue] = useState<string>('');
+  const [slackValue, setSlackValue] = useState<string>('');
+  
+  // Form state for notify all toggle per channel
+  const [notifyAllEmail, setNotifyAllEmail] = useState<boolean>(true);
+  const [notifyAllWebhook, setNotifyAllWebhook] = useState<boolean>(true);
+  const [notifyAllDiscord, setNotifyAllDiscord] = useState<boolean>(true);
+  const [notifyAllSlack, setNotifyAllSlack] = useState<boolean>(true);
 
   const fetchStatusData = async () => {
     try {
@@ -503,6 +635,123 @@ export default function StatusPageClient() {
 
   const handleManualRefresh = () => {
     setRefreshTrigger(prev => prev + 1);
+  };
+
+  const handleSubscribe = async (e: React.FormEvent, method: string) => {
+    e.preventDefault();
+    setSubscribing(true);
+
+    try {
+      let contact: any = {};
+      let selectedComponentsList: string[] = [];
+      
+      // Determine which notification method was used and collect values
+      switch (method) {
+        case 'email':
+          contact.email = emailValue;
+          selectedComponentsList = notifyAllEmail ? ['ALL'] : selectedComponents;
+          break;
+        case 'webhook':
+          contact.webhook = webhookValue;
+          selectedComponentsList = notifyAllWebhook ? ['ALL'] : selectedComponents;
+          break;
+        case 'discord':
+          contact.discord = discordValue;
+          selectedComponentsList = notifyAllDiscord ? ['ALL'] : selectedComponents;
+          break;
+        case 'slack':
+          contact.slack = slackValue;
+          selectedComponentsList = notifyAllSlack ? ['ALL'] : selectedComponents;
+          break;
+        default:
+          throw new Error('Invalid notification method');
+      }
+
+      // Call the API
+      const response = await fetch('/api/status/subscribers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contact,
+          components: selectedComponentsList,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to subscribe');
+      }
+
+      // Success
+      toast({
+        title: "Subscription successful",
+        description: "You will now receive status notifications",
+        variant: "default",
+      });
+
+      // Reset form
+      resetForm(method);
+    } catch (error) {
+      console.error('Subscription error:', error);
+      toast({
+        title: "Subscription failed",
+        description: error instanceof Error ? error.message : "An error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setSubscribing(false);
+    }
+  };
+
+  const resetForm = (method: string) => {
+    switch (method) {
+      case 'email':
+        setEmailValue('');
+        setNotifyAllEmail(true);
+        break;
+      case 'webhook':
+        setWebhookValue('');
+        setNotifyAllWebhook(true);
+        break;
+      case 'discord':
+        setDiscordValue('');
+        setNotifyAllDiscord(true);
+        break;
+      case 'slack':
+        setSlackValue('');
+        setNotifyAllSlack(true);
+        break;
+    }
+    setSelectedComponents([]);
+  };
+
+  // Helper function to collect all component IDs recursively including children
+  const getAllChildComponentIds = (component: Component | ComponentChild): string[] => {
+    const ids = [component.id];
+    
+    if (component.children && component.children.length > 0) {
+      component.children.forEach(child => {
+        ids.push(...getAllChildComponentIds(child));
+      });
+    }
+    
+    return ids;
+  };
+
+  // Helper function to update component selection
+  const handleComponentSelection = (component: Component | ComponentChild, checked: boolean) => {
+    if (checked) {
+      // Add this component and all its children
+      const allIds = getAllChildComponentIds(component);
+      setSelectedComponents(prev => [...new Set([...prev, ...allIds])]);
+    } else {
+      // Remove this component and all its children
+      const allIds = getAllChildComponentIds(component);
+      setSelectedComponents(prev => prev.filter(id => !allIds.includes(id)));
+    }
   };
 
   // Filter current (active) incidents
@@ -734,43 +983,180 @@ export default function StatusPageClient() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Historical Uptime</CardTitle>
-              <CardDescription>Past 90 days performance</CardDescription>
+              <CardTitle className={headingStyle}>
+                <div className="flex items-center gap-2">
+                  <BellRing className="h-5 w-5 text-[#D98546]" />
+                  <span>Stay Informed</span>
+                </div>
+              </CardTitle>
+              <CardDescription>Get notified about incidents and maintenance</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span>Core Network</span>
-                  <Badge className="bg-green-500 text-white py-1 px-3 rounded-full">99.99%</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>VPS Platform</span>
-                  <Badge className="bg-green-500 text-white py-1 px-3 rounded-full">99.98%</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Dedicated Servers</span>
-                  <Badge className="bg-green-500 text-white py-1 px-3 rounded-full">100%</Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Client Portal</span>
-                  <Badge className="bg-green-500 text-white py-1 px-3 rounded-full">99.95%</Badge>
-                </div>
-              </div>
+              <Tabs defaultValue="email" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="email" className="flex items-center gap-1 text-xs">
+                    <Mail className="h-4 w-4" />
+                    <span className="hidden sm:inline">Email</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="webhook" className="flex items-center gap-1 text-xs">
+                    <WebhookIcon className="h-4 w-4" />
+                    <span className="hidden sm:inline">Webhook</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="discord" className="flex items-center gap-1 text-xs">
+                    <Discord className="h-4 w-4" />
+                    <span className="hidden sm:inline">Discord</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="slack" className="flex items-center gap-1 text-xs">
+                    <Slack className="h-4 w-4" />
+                    <span className="hidden sm:inline">Slack</span>
+                  </TabsTrigger>
+                </TabsList>
+
+                <form onSubmit={(e) => handleSubscribe(e, 'email')} className="mt-4">
+                  <TabsContent value="email">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email Address</Label>
+                        <Input 
+                          id="email" 
+                          type="email" 
+                          placeholder="you@example.com" 
+                          value={emailValue}
+                          onChange={(e) => setEmailValue(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <NotificationComponentSelector
+                        components={components}
+                        selectedComponents={selectedComponents}
+                        onSelectionChange={handleComponentSelection}
+                        prefix="email"
+                        notifyAll={notifyAllEmail}
+                        setNotifyAll={setNotifyAllEmail}
+                      />
+                      <Button type="submit" disabled={subscribing}>
+                        {subscribing ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Subscribing...
+                          </>
+                        ) : (
+                          'Subscribe'
+                        )}
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </form>
+
+                <form onSubmit={(e) => handleSubscribe(e, 'webhook')} className="mt-4">
+                  <TabsContent value="webhook">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="webhook-url">Webhook URL</Label>
+                        <Input 
+                          id="webhook-url" 
+                          type="url" 
+                          placeholder="https://example.com/webhook" 
+                          value={webhookValue}
+                          onChange={(e) => setWebhookValue(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <NotificationComponentSelector
+                        components={components}
+                        selectedComponents={selectedComponents}
+                        onSelectionChange={handleComponentSelection}
+                        prefix="webhook"
+                        notifyAll={notifyAllWebhook}
+                        setNotifyAll={setNotifyAllWebhook}
+                      />
+                      <Button type="submit" disabled={subscribing}>
+                        {subscribing ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Subscribing...
+                          </>
+                        ) : (
+                          'Subscribe'
+                        )}
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </form>
+
+                <form onSubmit={(e) => handleSubscribe(e, 'discord')} className="mt-4">
+                  <TabsContent value="discord">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="discord-webhook">Discord Webhook URL</Label>
+                        <Input 
+                          id="discord-webhook" 
+                          type="url" 
+                          placeholder="https://discord.com/api/webhooks/..." 
+                          value={discordValue}
+                          onChange={(e) => setDiscordValue(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <NotificationComponentSelector
+                        components={components}
+                        selectedComponents={selectedComponents}
+                        onSelectionChange={handleComponentSelection}
+                        prefix="discord"
+                        notifyAll={notifyAllDiscord}
+                        setNotifyAll={setNotifyAllDiscord}
+                      />
+                      <Button type="submit" disabled={subscribing}>
+                        {subscribing ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Subscribing...
+                          </>
+                        ) : (
+                          'Subscribe'
+                        )}
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </form>
+
+                <form onSubmit={(e) => handleSubscribe(e, 'slack')} className="mt-4">
+                  <TabsContent value="slack">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="slack-webhook">Slack Webhook URL</Label>
+                        <Input 
+                          id="slack-webhook" 
+                          type="url" 
+                          placeholder="https://hooks.slack.com/services/..." 
+                          value={slackValue}
+                          onChange={(e) => setSlackValue(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <NotificationComponentSelector
+                        components={components}
+                        selectedComponents={selectedComponents}
+                        onSelectionChange={handleComponentSelection}
+                        prefix="slack"
+                        notifyAll={notifyAllSlack}
+                        setNotifyAll={setNotifyAllSlack}
+                      />
+                      <Button type="submit" disabled={subscribing}>
+                        {subscribing ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Subscribing...
+                          </>
+                        ) : (
+                          'Subscribe'
+                        )}
+                      </Button>
+                    </div>
+                  </TabsContent>
+                </form>
+              </Tabs>
             </CardContent>
-            <CardFooter>
-              <div className="w-full flex justify-end">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="hover:text-[#D98546] hover:border-[#D98546]"
-                  asChild
-                >
-                  <Link href="https://hyber.instatus.com/uptime" target="_blank" rel="noopener noreferrer">
-                    View Detailed Uptime <ExternalLink className="ml-2 h-3 w-3" />
-                  </Link>
-                </Button>
-              </div>
-            </CardFooter>
           </Card>
         </div>
 
