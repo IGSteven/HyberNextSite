@@ -1,4 +1,4 @@
-import { getMaintenanceById } from "../../../../lib/status/maintenances";
+import { getMaintenanceById } from "../../../../../lib/status/maintenances";
 
 export async function GET(
   request: Request,

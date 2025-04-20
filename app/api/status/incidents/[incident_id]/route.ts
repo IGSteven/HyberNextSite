@@ -1,4 +1,4 @@
-import { getIncidentById } from "../../../../lib/status/incidents";
+import { getIncidentById } from "../../../../../lib/status/incidents";
 
 export async function GET(
   request: Request,
