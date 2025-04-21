@@ -8,8 +8,8 @@ import blogData from "@/data/blog-data.json"
 
 // Function to read blog data (works in both client and server)
 export async function getBlogData() {
-  // Check storage method
-  if (useMongoStorage()) {
+  // Check storage method and if we're on client side
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       
@@ -47,7 +47,7 @@ export async function getBlogData() {
 
 // Function to write blog data to storage
 export async function writeBlogData(data: any) {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       
@@ -104,7 +104,7 @@ export async function writeBlogData(data: any) {
 // Function to get all blog posts
 export async function getPosts(): Promise<BlogPost[]> {
   // If MongoDB is enabled, fetch directly for better performance
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const posts = await db.collection(collections.blogPosts).find({}).toArray();
@@ -125,7 +125,7 @@ export async function getPosts(): Promise<BlogPost[]> {
 
 // Function to get a blog post by slug
 export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const post = await db.collection(collections.blogPosts).findOne({ slug });
@@ -142,7 +142,7 @@ export async function getPostBySlug(slug: string): Promise<BlogPost | null> {
 
 // Function to get all categories
 export async function getCategories(): Promise<Category[]> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const categories = await db.collection(collections.blogCategories).find({}).toArray();
@@ -159,7 +159,7 @@ export async function getCategories(): Promise<Category[]> {
 
 // Function to get a category by ID
 export async function getCategoryById(id: string): Promise<Category | null> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const category = await db.collection(collections.blogCategories).findOne({ id });
@@ -176,7 +176,7 @@ export async function getCategoryById(id: string): Promise<Category | null> {
 
 // Function to get a category by slug
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const category = await db.collection(collections.blogCategories).findOne({ slug });
@@ -193,7 +193,7 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 
 // Function to get all authors
 export async function getAuthors(): Promise<Author[]> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const authors = await db.collection(collections.authors).find({}).toArray();
@@ -210,7 +210,7 @@ export async function getAuthors(): Promise<Author[]> {
 
 // Function to get an author by ID
 export async function getAuthorById(id: string): Promise<Author | null> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const author = await db.collection(collections.authors).findOne({ id });
@@ -227,7 +227,7 @@ export async function getAuthorById(id: string): Promise<Author | null> {
 
 // Function to get an author by slug
 export async function getAuthorBySlug(slug: string): Promise<Author | null> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const author = await db.collection(collections.authors).findOne({ slug });
@@ -258,7 +258,7 @@ export async function getDefaultAuthor(): Promise<Author> {
 
 // Function to get featured posts
 export async function getFeaturedPosts(): Promise<BlogPost[]> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const posts = await db.collection(collections.blogPosts)
@@ -277,7 +277,7 @@ export async function getFeaturedPosts(): Promise<BlogPost[]> {
 
 // Function to get published posts
 export async function getPublishedPosts(): Promise<BlogPost[]> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const posts = await db.collection(collections.blogPosts)
@@ -296,7 +296,7 @@ export async function getPublishedPosts(): Promise<BlogPost[]> {
 
 // Function to get posts by category
 export async function getPostsByCategory(categoryId: string): Promise<BlogPost[]> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const posts = await db.collection(collections.blogPosts)
@@ -325,7 +325,7 @@ export async function getPostsByCategory(categoryId: string): Promise<BlogPost[]
 
 // Function to get posts by author
 export async function getPostsByAuthor(authorId: string): Promise<BlogPost[]> {
-  if (useMongoStorage()) {
+  if (useMongoStorage() && typeof window === 'undefined') {
     try {
       const { db } = await connectToDatabase();
       const posts = await db.collection(collections.blogPosts)

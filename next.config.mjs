@@ -27,6 +27,20 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  webpack: (config, { isServer }) => {
+    // Handle Node.js modules properly during build
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        'fs/promises': false,
+        net: false,
+        tls: false,
+        child_process: false,
+      };
+    }
+    return config;
+  },
 }
 
 if (userConfig) {

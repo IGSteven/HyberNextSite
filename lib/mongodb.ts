@@ -1,6 +1,12 @@
 import { MongoClient, ServerApiVersion } from 'mongodb';
-import fs from 'fs/promises';
 import path from 'path';
+
+// To fix 'fs/promises' module issues with Next.js
+let fs: any;
+if (typeof window === 'undefined') {
+  // Only import on the server side
+  fs = require('fs/promises');
+}
 
 // Ensure environment variables are set
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -25,6 +31,11 @@ const options = {
 };
 
 export async function connectToDatabase() {
+  // This function should only be called server-side
+  if (typeof window !== 'undefined') {
+    throw new Error('This function is only meant to be called on the server side');
+  }
+
   // If no MongoDB URI is provided, throw an error
   if (!MONGODB_URI) {
     throw new Error('Please define the MONGODB_URI environment variable');
@@ -65,6 +76,12 @@ export function useMongoStorage() {
 
 // Utility to migrate data from JSON to MongoDB if needed
 export async function migrateDataIfNeeded() {
+  // This function should only be called server-side
+  if (typeof window !== 'undefined') {
+    console.warn('migrateDataIfNeeded is only meant to be called on the server side');
+    return;
+  }
+
   if (!useMongoStorage()) return;
   
   try {
