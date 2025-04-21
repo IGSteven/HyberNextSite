@@ -4,7 +4,7 @@ import streamBrowserify from 'stream-browserify';
 import util from 'util';
 import assert from 'assert';
 import { Buffer } from 'buffer';
-import process from 'process/browser';
+// Remove webpack import - we'll access it through the webpack context
 
 let userConfig = undefined
 try {
@@ -37,11 +37,11 @@ const nextConfig = {
   },
   // Explicitly specify to use webpack instead of Turbopack for consistency
   devIndicators: {
-    buildActivityPosition: 'bottom-right',
+    position: 'bottom-right',
   },
   // Add allowedDevOrigins to address the cross-origin warning
   allowedDevOrigins: ["http://10.230.3.6", "http://localhost"],
-  webpack: (config, { isServer }) => {
+  webpack: (config, { webpack, isServer }) => {
     // More extensive handling of Node.js modules during browser builds
     if (!isServer) {
       config.resolve.fallback = {
@@ -55,17 +55,17 @@ const nextConfig = {
         'timers/promises': false,
         dgram: false,
         os: false,
-        crypto: cryptoBrowserify,
-        stream: streamBrowserify,
+        crypto: 'crypto-browserify',
+        stream: 'stream-browserify',
         http: false,
         https: false,
         zlib: false,
         path: false,
         url: false,
-        util: util,
-        assert: assert,
-        buffer: Buffer,
-        process: process,
+        util: 'util',
+        assert: 'assert',
+        buffer: 'buffer',
+        process: false,
       };
 
       // Explicitly handle MongoDB packages to prevent them from being bundled
@@ -76,8 +76,7 @@ const nextConfig = {
       
       // Add polyfills for browser environment
       config.plugins.push(
-        new config.webpack.ProvidePlugin({
-          process: 'process/browser',
+        new webpack.ProvidePlugin({
           Buffer: ['buffer', 'Buffer'],
         })
       );
