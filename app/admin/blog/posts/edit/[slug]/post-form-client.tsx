@@ -32,11 +32,17 @@ export default function PostFormClient({ post, categories, isEdit = false }: Pos
   const [authors, setAuthors] = useState<Author[]>([])
   const [selectedAuthor, setSelectedAuthor] = useState<string>(post?.authorId || "hyberhost-team")
 
+  // Use effect to fetch authors safely via the server action
   useEffect(() => {
     const fetchAuthors = async () => {
-      // Use the server action instead of directly calling blog-utils
-      const authorList = await getAuthorsAction()
-      setAuthors(authorList)
+      try {
+        // Use the server action to fetch authors - this prevents direct MongoDB imports on the client
+        const authorList = await getAuthorsAction()
+        setAuthors(authorList)
+      } catch (error) {
+        console.error("Error fetching authors:", error)
+        setError("Failed to load authors. Please try refreshing the page.")
+      }
     }
     fetchAuthors()
   }, [])
@@ -63,6 +69,7 @@ export default function PostFormClient({ post, categories, isEdit = false }: Pos
 
       formData.append("authorId", selectedAuthor)
 
+      // Call the server action which handles MongoDB interaction
       const result = isEdit ? await updatePost(formData) : await createPost(formData)
 
       if (result.success) {

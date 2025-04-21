@@ -1,16 +1,10 @@
+// Next.js client components safe import for MongoDB
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import path from 'path';
 
-// To fix 'fs/promises' module issues with Next.js
-let fs: any;
-if (typeof window === 'undefined') {
-  // Only import on the server side
-  fs = require('fs/promises');
-}
-
-// Ensure environment variables are set
+// Environment variables setup
 const MONGODB_URI = process.env.MONGODB_URI;
-const MONGODB_DB = process.env.MONGODB_DB || 'site'; // Use 'site' as the default database name
+const MONGODB_DB = process.env.MONGODB_DB || 'site';
 const COLLECTION_BLOG_POSTS = process.env.COLLECTION_BLOG_POSTS || 'posts';
 const COLLECTION_BLOG_CATEGORIES = process.env.COLLECTION_BLOG_CATEGORIES || 'categories';
 const COLLECTION_AUTHORS = process.env.COLLECTION_AUTHORS || 'authors';
@@ -29,6 +23,13 @@ const options = {
     deprecationErrors: true,
   }
 };
+
+// Only import fs dynamically on the server side
+let fs: any;
+if (typeof window === 'undefined') {
+  // Only import on the server side
+  fs = require('fs/promises');
+}
 
 export async function connectToDatabase() {
   // This function should only be called server-side
@@ -49,7 +50,7 @@ export async function connectToDatabase() {
   // Connect to MongoDB
   const client = new MongoClient(MONGODB_URI, options);
   await client.connect();
-  const db = client.db(MONGODB_DB); // Explicitly use the configured database name
+  const db = client.db(MONGODB_DB);
 
   console.log(`Connected to MongoDB database: ${MONGODB_DB}`);
 

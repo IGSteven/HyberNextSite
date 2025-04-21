@@ -1,10 +1,10 @@
 'use server';
 
 import { revalidatePath } from "next/cache"
-import fs from "fs/promises"
 import path from "path"
 import { v4 as uuidv4 } from "uuid"
-import { connectToDatabase, collections, useMongoStorage } from '@/lib/mongodb';
+// Remove direct imports of MongoDB modules
+// import { connectToDatabase, collections, useMongoStorage } from '@/lib/mongodb';
 import { getBlogData, writeBlogData as writeDataUtil } from '@/lib/blog-utils';
 
 const DATA_FILE_PATH = path.join(process.cwd(), "data", "blog-data.json")
@@ -17,6 +17,19 @@ async function readBlogData() {
 // Now using the utility from blog-utils.ts which handles both storage methods
 async function writeBlogData(data: any) {
   return writeDataUtil(data);
+}
+
+// Helper to safely check if MongoDB should be used
+async function checkUseMongoStorage() {
+  // Since we're in a server action, it's safe to import
+  const { useMongoStorage } = await import('@/lib/mongodb');
+  return useMongoStorage();
+}
+
+// Helper to safely connect to MongoDB
+async function safeConnectToDatabase() {
+  const { connectToDatabase, collections } = await import('@/lib/mongodb');
+  return { db: (await connectToDatabase()).db, collections };
 }
 
 export async function createCategory(formData: FormData): Promise<{ success: boolean; error?: string }> {
@@ -44,9 +57,9 @@ export async function createCategory(formData: FormData): Promise<{ success: boo
     }
 
     // If using MongoDB, we can directly add to the database
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         await db.collection(collections.blogCategories).insertOne(newCategory);
       } catch (error) {
         console.error("Error creating category in MongoDB:", error);
@@ -88,9 +101,9 @@ export async function updateCategory(formData: FormData): Promise<{ success: boo
       description: description || "",
     }
 
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         const result = await db.collection(collections.blogCategories).updateOne(
           { id },
           { $set: updatedCategory }
@@ -170,9 +183,9 @@ export async function createPost(formData: FormData): Promise<{ success: boolean
       featured,
     }
 
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         await db.collection(collections.blogPosts).insertOne(newPost);
       } catch (error) {
         console.error("Error creating post in MongoDB:", error);
@@ -221,9 +234,9 @@ export async function updatePost(formData: FormData): Promise<{ success: boolean
       }
     }
 
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         
         // First get the existing post to preserve createdAt
         const existingPost = await db.collection(collections.blogPosts).findOne({ id });
@@ -304,9 +317,9 @@ export async function updatePost(formData: FormData): Promise<{ success: boolean
 
 export async function deletePost(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         const result = await db.collection(collections.blogPosts).deleteOne({ id });
         
         if (result.deletedCount === 0) {
@@ -343,9 +356,9 @@ export async function deletePost(id: string): Promise<{ success: boolean; error?
 
 export async function deleteCategory(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         
         // Delete the category
         const result = await db.collection(collections.blogCategories).deleteOne({ id });
@@ -436,9 +449,9 @@ export async function createAuthor(formData: FormData): Promise<{ success: boole
       },
     }
 
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         await db.collection(collections.authors).insertOne(newAuthor);
       } catch (error) {
         console.error("Error creating author in MongoDB:", error);
@@ -496,9 +509,9 @@ export async function updateAuthor(formData: FormData): Promise<{ success: boole
       },
     }
 
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         const result = await db.collection(collections.authors).updateOne(
           { id },
           { $set: updatedAuthor }
@@ -538,9 +551,9 @@ export async function updateAuthor(formData: FormData): Promise<{ success: boole
 
 export async function deleteAuthor(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    if (useMongoStorage()) {
+    if (await checkUseMongoStorage()) {
       try {
-        const { db } = await connectToDatabase();
+        const { db, collections } = await safeConnectToDatabase();
         
         // First get all authors to find a default author
         const authors = await db.collection(collections.authors).find({}).toArray();

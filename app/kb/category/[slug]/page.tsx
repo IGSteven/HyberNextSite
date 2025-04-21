@@ -9,6 +9,7 @@ import { KBSidebar } from "@/components/kb-sidebar"
 import { BookOpen, ChevronRight, FolderOpen } from "lucide-react"
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  // Don't await params.slug - it's a string, not a Promise
   const category = await getCategoryBySlug(params.slug)
 
   if (!category) {
@@ -24,6 +25,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
+  // Don't await params.slug - it's a string, not a Promise
   const category = await getCategoryBySlug(params.slug)
 
   if (!category) {

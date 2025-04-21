@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { revalidatePath } from "next/cache"
+// Remove revalidatePath import as we'll use a different approach
 import type { Metadata } from "next"
 
 import { MdxComponents } from "@/components/mdx-components"
@@ -32,13 +32,16 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     return {}
   }
 
-  revalidatePath(`/blog/${slug}`)
+  // Remove revalidatePath call from here
 
   return {
     title: post.metaTitle || post.title,
     description: post.metaDescription || post.excerpt,
   }
 }
+
+// Set a reasonable revalidation time for the blog post
+export const revalidate = 3600; // Revalidate this page every hour
 
 export default async function Page({ params, searchParams }: Props) {
   const slug = params.slug
@@ -52,7 +55,7 @@ export default async function Page({ params, searchParams }: Props) {
     notFound()
   }
 
-  revalidatePath(`/blog/${slug}`)
+  // Remove revalidatePath call from here
 
   const categories = await getCategories()
   const category = categories.find((category) => category.id === post.categoryId)

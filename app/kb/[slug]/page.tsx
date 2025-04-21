@@ -11,6 +11,7 @@ import ReactMarkdown from "react-markdown"
 import { MdxComponents } from "@/components/mdx-components"
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  // Don't await params.slug - it's a string, not a Promise
   const article = await getArticleBySlug(params.slug)
 
   if (!article) {
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
+  // Don't await params.slug - it's a string, not a Promise
   const article = await getArticleBySlug(params.slug)
 
   if (!article) {

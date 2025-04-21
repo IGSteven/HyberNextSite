@@ -27,8 +27,14 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  // Explicitly specify to use webpack instead of Turbopack for consistency
+  devIndicators: {
+    buildActivityPosition: 'bottom-right',
+  },
+  // Also add allowedDevOrigins to address the cross-origin warning
+  allowedDevOrigins: ["http://10.230.3.6", "http://localhost"],
   webpack: (config, { isServer }) => {
-    // Handle Node.js modules properly during build
+    // More extensive handling of Node.js modules during browser builds
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -50,6 +56,17 @@ const nextConfig = {
         url: false,
         util: false,
         assert: false,
+        buffer: false,
+        process: false,
+      };
+      
+      // Add specific aliases to prevent MongoDB's client-side encryption modules from being included
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        './mongocryptd_manager': false,
+        './auto_encrypter': false,
+        'child_process': false,
+        'mongodb-client-encryption': false
       };
     }
     return config;
