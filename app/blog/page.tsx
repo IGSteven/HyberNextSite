@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge"
 import { Calendar, User } from "lucide-react"
 import type { Metadata } from "next"
+import { migrateDataIfNeeded } from "@/lib/mongodb"
 
 export const metadata: Metadata = {
   title: "Blog - HyberHost",
@@ -12,11 +13,17 @@ export const metadata: Metadata = {
 }
 
 export default async function BlogPage() {
+  // Ensure data is migrated if needed before fetching
+  await migrateDataIfNeeded();
+  
   const posts = await getPublishedPosts()
   const categories = await getCategories()
 
   // Get category names by ID
   const getCategoryNames = (categoryIds: string[]) => {
+    // Handle if categoryIds is undefined or null
+    if (!categoryIds) return [];
+    
     return categoryIds
       .map((id) => {
         const category = categories.find((cat) => cat.id === id)
@@ -57,6 +64,28 @@ export default async function BlogPage() {
 
   const featuredPostsWithAuthors = await Promise.all(featuredPosts.map(getPostWithAuthor))
   const regularPostsWithAuthors = await Promise.all(regularPosts.map(getPostWithAuthor))
+
+  // Show message if no posts are found
+  if (posts.length === 0) {
+    return (
+      <div className="py-24 sm:py-32">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Our Blog</h1>
+            <p className="mt-6 text-lg leading-8 text-muted-foreground">
+              Latest news, tutorials, and updates from HyberHost
+            </p>
+          </div>
+          <div className="mt-16 text-center">
+            <p className="text-muted-foreground">No posts found. Check back soon!</p>
+            <p className="mt-4 text-muted-foreground">
+              If you're seeing this message and expect to see blog posts, check the MongoDB connection and data migration.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-24 sm:py-32">

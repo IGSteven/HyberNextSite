@@ -4,27 +4,19 @@ import { revalidatePath } from "next/cache"
 import fs from "fs/promises"
 import path from "path"
 import { v4 as uuidv4 } from "uuid"
+import { connectToDatabase, collections, useMongoStorage } from '@/lib/mongodb';
+import { getBlogData, writeBlogData as writeDataUtil } from '@/lib/blog-utils';
 
 const DATA_FILE_PATH = path.join(process.cwd(), "data", "blog-data.json")
 
+// Now using the utility from blog-utils.ts which handles both storage methods
 async function readBlogData() {
-  try {
-    const data = await fs.readFile(DATA_FILE_PATH, "utf8")
-    return JSON.parse(data)
-  } catch (error) {
-    console.error("Error reading blog data:", error)
-    return { posts: [], categories: [], authors: [] }
-  }
+  return getBlogData();
 }
 
+// Now using the utility from blog-utils.ts which handles both storage methods
 async function writeBlogData(data: any) {
-  try {
-    await fs.writeFile(DATA_FILE_PATH, JSON.stringify(data, null, 2), "utf8")
-    return true
-  } catch (error) {
-    console.error("Error writing blog data:", error)
-    return false
-  }
+  return writeDataUtil(data);
 }
 
 export async function createCategory(formData: FormData): Promise<{ success: boolean; error?: string }> {
@@ -51,11 +43,22 @@ export async function createCategory(formData: FormData): Promise<{ success: boo
       description: description || "",
     }
 
-    blogData.categories.push(newCategory)
-
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    // If using MongoDB, we can directly add to the database
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        await db.collection(collections.blogCategories).insertOne(newCategory);
+      } catch (error) {
+        console.error("Error creating category in MongoDB:", error);
+        return { success: false, error: "Failed to create category in database" };
+      }
+    } else {
+      // Otherwise use the JSON approach
+      blogData.categories.push(newCategory);
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
@@ -78,23 +81,42 @@ export async function updateCategory(formData: FormData): Promise<{ success: boo
       return { success: false, error: "ID, name, and slug are required" }
     }
 
-    const blogData = await readBlogData()
-
-    const categoryIndex = blogData.categories.findIndex((cat: any) => cat.id === id)
-    if (categoryIndex === -1) {
-      return { success: false, error: "Category not found" }
-    }
-
-    blogData.categories[categoryIndex] = {
+    const updatedCategory = {
       id,
       name,
       slug,
       description: description || "",
     }
 
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        const result = await db.collection(collections.blogCategories).updateOne(
+          { id },
+          { $set: updatedCategory }
+        );
+        
+        if (result.matchedCount === 0) {
+          return { success: false, error: "Category not found" };
+        }
+      } catch (error) {
+        console.error("Error updating category in MongoDB:", error);
+        return { success: false, error: "Failed to update category in database" };
+      }
+    } else {
+      const blogData = await readBlogData();
+      const categoryIndex = blogData.categories.findIndex((cat: any) => cat.id === id);
+      
+      if (categoryIndex === -1) {
+        return { success: false, error: "Category not found" };
+      }
+      
+      blogData.categories[categoryIndex] = updatedCategory;
+      
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
@@ -121,7 +143,13 @@ export async function createPost(formData: FormData): Promise<{ success: boolean
       return { success: false, error: "Title, excerpt, and content are required" }
     }
 
-    const blogData = await readBlogData()
+    // Extract category IDs from form data
+    const categoryIds: string[] = []
+    for (const [key, value] of formData.entries()) {
+      if (key.startsWith("category-") && value === "on") {
+        categoryIds.push(key.replace("category-", ""))
+      }
+    }
 
     const newPost = {
       id: uuidv4(),
@@ -134,7 +162,7 @@ export async function createPost(formData: FormData): Promise<{ success: boolean
       content,
       coverImage: coverImage || null,
       authorId: authorId || "hyberhost-team",
-      categories: [],
+      categories: categoryIds,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       publishedAt: status === "published" ? publishDateStr || new Date().toISOString() : null,
@@ -142,20 +170,22 @@ export async function createPost(formData: FormData): Promise<{ success: boolean
       featured,
     }
 
-    // Extract category IDs from form data
-    const categoryIds: string[] = []
-    for (const [key, value] of formData.entries()) {
-      if (key.startsWith("category-") && value === "on") {
-        categoryIds.push(key.replace("category-", ""))
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        await db.collection(collections.blogPosts).insertOne(newPost);
+      } catch (error) {
+        console.error("Error creating post in MongoDB:", error);
+        return { success: false, error: "Failed to create post in database" };
       }
-    }
-    newPost.categories = categoryIds
-
-    blogData.posts.push(newPost)
-
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    } else {
+      const blogData = await readBlogData();
+      blogData.posts.push(newPost);
+      
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
@@ -183,32 +213,6 @@ export async function updatePost(formData: FormData): Promise<{ success: boolean
       return { success: false, error: "ID, title, excerpt, and content are required" }
     }
 
-    const blogData = await readBlogData()
-
-    const postIndex = blogData.posts.findIndex((post: any) => post.id === id)
-    if (postIndex === -1) {
-      return { success: false, error: "Post not found" }
-    }
-
-    const updatedPost = {
-      id,
-      title,
-      slug: title
-        .toLowerCase()
-        .replace(/ /g, "-")
-        .replace(/[^\w-]+/g, ""),
-      excerpt,
-      content,
-      coverImage: coverImage || null,
-      authorId: authorId || "hyberhost-team",
-      categories: [],
-      createdAt: blogData.posts[postIndex].createdAt,
-      updatedAt: new Date().toISOString(),
-      publishedAt: status === "published" ? publishDateStr || new Date().toISOString() : null,
-      status,
-      featured,
-    }
-
     // Extract category IDs from form data
     const categoryIds: string[] = []
     for (const [key, value] of formData.entries()) {
@@ -216,13 +220,77 @@ export async function updatePost(formData: FormData): Promise<{ success: boolean
         categoryIds.push(key.replace("category-", ""))
       }
     }
-    updatedPost.categories = categoryIds
 
-    blogData.posts[postIndex] = updatedPost
-
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        
+        // First get the existing post to preserve createdAt
+        const existingPost = await db.collection(collections.blogPosts).findOne({ id });
+        if (!existingPost) {
+          return { success: false, error: "Post not found" };
+        }
+        
+        const updatedPost = {
+          id,
+          title,
+          slug: title
+            .toLowerCase()
+            .replace(/ /g, "-")
+            .replace(/[^\w-]+/g, ""),
+          excerpt,
+          content,
+          coverImage: coverImage || null,
+          authorId: authorId || "hyberhost-team",
+          categories: categoryIds,
+          createdAt: existingPost.createdAt,
+          updatedAt: new Date().toISOString(),
+          publishedAt: status === "published" ? publishDateStr || new Date().toISOString() : null,
+          status,
+          featured,
+        };
+        
+        await db.collection(collections.blogPosts).updateOne(
+          { id },
+          { $set: updatedPost }
+        );
+      } catch (error) {
+        console.error("Error updating post in MongoDB:", error);
+        return { success: false, error: "Failed to update post in database" };
+      }
+    } else {
+      const blogData = await readBlogData();
+      const postIndex = blogData.posts.findIndex((post: any) => post.id === id);
+      
+      if (postIndex === -1) {
+        return { success: false, error: "Post not found" };
+      }
+      
+      const updatedPost = {
+        id,
+        title,
+        slug: title
+          .toLowerCase()
+          .replace(/ /g, "-")
+          .replace(/[^\w-]+/g, ""),
+        excerpt,
+        content,
+        coverImage: coverImage || null,
+        authorId: authorId || "hyberhost-team",
+        categories: categoryIds,
+        createdAt: blogData.posts[postIndex].createdAt,
+        updatedAt: new Date().toISOString(),
+        publishedAt: status === "published" ? publishDateStr || new Date().toISOString() : null,
+        status,
+        featured,
+      };
+      
+      blogData.posts[postIndex] = updatedPost;
+      
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
@@ -236,18 +304,32 @@ export async function updatePost(formData: FormData): Promise<{ success: boolean
 
 export async function deletePost(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const blogData = await readBlogData()
-
-    const postIndex = blogData.posts.findIndex((post: any) => post.id === id)
-    if (postIndex === -1) {
-      return { success: false, error: "Post not found" }
-    }
-
-    blogData.posts.splice(postIndex, 1)
-
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        const result = await db.collection(collections.blogPosts).deleteOne({ id });
+        
+        if (result.deletedCount === 0) {
+          return { success: false, error: "Post not found" };
+        }
+      } catch (error) {
+        console.error("Error deleting post from MongoDB:", error);
+        return { success: false, error: "Failed to delete post from database" };
+      }
+    } else {
+      const blogData = await readBlogData();
+      const postIndex = blogData.posts.findIndex((post: any) => post.id === id);
+      
+      if (postIndex === -1) {
+        return { success: false, error: "Post not found" };
+      }
+      
+      blogData.posts.splice(postIndex, 1);
+      
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
@@ -261,25 +343,47 @@ export async function deletePost(id: string): Promise<{ success: boolean; error?
 
 export async function deleteCategory(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const blogData = await readBlogData()
-
-    const categoryIndex = blogData.categories.findIndex((cat: any) => cat.id === id)
-    if (categoryIndex === -1) {
-      return { success: false, error: "Category not found" }
-    }
-
-    blogData.categories.splice(categoryIndex, 1)
-
-    // Remove category from posts
-    blogData.posts.forEach((post: any) => {
-      if (post.categories && Array.isArray(post.categories)) {
-        post.categories = post.categories.filter((catId: string) => catId !== id)
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        
+        // Delete the category
+        const result = await db.collection(collections.blogCategories).deleteOne({ id });
+        
+        if (result.deletedCount === 0) {
+          return { success: false, error: "Category not found" };
+        }
+        
+        // Remove category from posts
+        await db.collection(collections.blogPosts).updateMany(
+          { categories: id },
+          { $pull: { categories: id } }
+        );
+      } catch (error) {
+        console.error("Error deleting category from MongoDB:", error);
+        return { success: false, error: "Failed to delete category from database" };
       }
-    })
-
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    } else {
+      const blogData = await readBlogData();
+      const categoryIndex = blogData.categories.findIndex((cat: any) => cat.id === id);
+      
+      if (categoryIndex === -1) {
+        return { success: false, error: "Category not found" };
+      }
+      
+      blogData.categories.splice(categoryIndex, 1);
+      
+      // Remove category from posts
+      blogData.posts.forEach((post: any) => {
+        if (post.categories && Array.isArray(post.categories)) {
+          post.categories = post.categories.filter((catId: string) => catId !== id);
+        }
+      });
+      
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
@@ -308,11 +412,12 @@ export async function createAuthor(formData: FormData): Promise<{ success: boole
       return { success: false, error: "Name and slug are required" }
     }
 
-    const blogData = await readBlogData()
-
-    const authorExists = blogData.authors.some((author: any) => author.slug === slug)
+    // Check if author with this slug already exists
+    const blogData = await readBlogData();
+    const authorExists = blogData.authors.some((author: any) => author.slug === slug);
+    
     if (authorExists) {
-      return { success: false, error: "Author with this slug already exists" }
+      return { success: false, error: "Author with this slug already exists" };
     }
 
     const newAuthor = {
@@ -331,11 +436,21 @@ export async function createAuthor(formData: FormData): Promise<{ success: boole
       },
     }
 
-    blogData.authors.push(newAuthor)
-
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        await db.collection(collections.authors).insertOne(newAuthor);
+      } catch (error) {
+        console.error("Error creating author in MongoDB:", error);
+        return { success: false, error: "Failed to create author in database" };
+      }
+    } else {
+      blogData.authors.push(newAuthor);
+      
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
@@ -365,14 +480,7 @@ export async function updateAuthor(formData: FormData): Promise<{ success: boole
       return { success: false, error: "ID, name, and slug are required" }
     }
 
-    const blogData = await readBlogData()
-
-    const authorIndex = blogData.authors.findIndex((author: any) => author.id === id)
-    if (authorIndex === -1) {
-      return { success: false, error: "Author not found" }
-    }
-
-    blogData.authors[authorIndex] = {
+    const updatedAuthor = {
       id,
       name,
       slug,
@@ -388,9 +496,35 @@ export async function updateAuthor(formData: FormData): Promise<{ success: boole
       },
     }
 
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        const result = await db.collection(collections.authors).updateOne(
+          { id },
+          { $set: updatedAuthor }
+        );
+        
+        if (result.matchedCount === 0) {
+          return { success: false, error: "Author not found" };
+        }
+      } catch (error) {
+        console.error("Error updating author in MongoDB:", error);
+        return { success: false, error: "Failed to update author in database" };
+      }
+    } else {
+      const blogData = await readBlogData();
+      const authorIndex = blogData.authors.findIndex((author: any) => author.id === id);
+      
+      if (authorIndex === -1) {
+        return { success: false, error: "Author not found" };
+      }
+      
+      blogData.authors[authorIndex] = updatedAuthor;
+      
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
@@ -404,33 +538,77 @@ export async function updateAuthor(formData: FormData): Promise<{ success: boole
 
 export async function deleteAuthor(id: string): Promise<{ success: boolean; error?: string }> {
   try {
-    const blogData = await readBlogData()
-
-    const authorIndex = blogData.authors.findIndex((author: any) => author.id === id)
-    if (authorIndex === -1) {
-      return { success: false, error: "Author not found" }
-    }
-
-    blogData.authors.splice(authorIndex, 1)
-
-    // Reassign posts to default author
-    const defaultAuthor = blogData.authors[0] || {
-      id: "default",
-      name: "HyberHost Team",
-      slug: "hyberhost-team",
-      bio: "The official HyberHost team account.",
-      avatar: "/double-h-monogram.png",
-    }
-
-    blogData.posts.forEach((post: any) => {
-      if (post.authorId === id) {
-        post.authorId = defaultAuthor.id
+    if (useMongoStorage()) {
+      try {
+        const { db } = await connectToDatabase();
+        
+        // First get all authors to find a default author
+        const authors = await db.collection(collections.authors).find({}).toArray();
+        
+        // Get the default author (any other author or a default one)
+        const defaultAuthor = authors.find(author => author.id !== id) || {
+          id: "default",
+          name: "HyberHost Team",
+          slug: "hyberhost-team",
+          bio: "The official HyberHost team account.",
+          avatar: "/double-h-monogram.png",
+        };
+        
+        // If the default author doesn't exist, create it
+        if (defaultAuthor.id === 'default') {
+          await db.collection(collections.authors).insertOne(defaultAuthor);
+        }
+        
+        // Delete the author
+        const result = await db.collection(collections.authors).deleteOne({ id });
+        
+        if (result.deletedCount === 0) {
+          return { success: false, error: "Author not found" };
+        }
+        
+        // Reassign posts to default author
+        await db.collection(collections.blogPosts).updateMany(
+          { authorId: id },
+          { $set: { authorId: defaultAuthor.id } }
+        );
+      } catch (error) {
+        console.error("Error deleting author from MongoDB:", error);
+        return { success: false, error: "Failed to delete author from database" };
       }
-    })
-
-    const writeSuccess = await writeBlogData(blogData)
-    if (!writeSuccess) {
-      return { success: false, error: "Failed to write blog data" }
+    } else {
+      const blogData = await readBlogData();
+      const authorIndex = blogData.authors.findIndex((author: any) => author.id === id);
+      
+      if (authorIndex === -1) {
+        return { success: false, error: "Author not found" };
+      }
+      
+      const defaultAuthor = blogData.authors.find(author => author.id !== id) || {
+        id: "default",
+        name: "HyberHost Team",
+        slug: "hyberhost-team",
+        bio: "The official HyberHost team account.",
+        avatar: "/double-h-monogram.png",
+      };
+      
+      blogData.authors.splice(authorIndex, 1);
+      
+      // If we removed the last author, add the default one
+      if (blogData.authors.length === 0) {
+        blogData.authors.push(defaultAuthor);
+      }
+      
+      // Reassign posts to default author
+      blogData.posts.forEach((post: any) => {
+        if (post.authorId === id) {
+          post.authorId = defaultAuthor.id;
+        }
+      });
+      
+      const writeSuccess = await writeBlogData(blogData);
+      if (!writeSuccess) {
+        return { success: false, error: "Failed to write blog data" };
+      }
     }
 
     revalidatePath("/blog")
