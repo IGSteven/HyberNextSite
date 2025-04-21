@@ -8,7 +8,7 @@ import type { Metadata } from "next"
 import { migrateDataIfNeeded } from "@/lib/mongodb"
 
 export const metadata: Metadata = {
-  title: "Blog - HyberHost",
+  title: "Blog",
   description: "Latest news, tutorials, and updates from HyberHost",
 }
 

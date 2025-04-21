@@ -30,13 +30,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
   if (!author) {
     return {
-      title: "Author Not Found - HyberHost",
+      title: "Author Not Found",
       description: "The requested author could not be found.",
     }
   }
 
   return {
-    title: `${author.name} - HyberHost Blog`,
+    title: `${author.name}'s Blog`,
     description: author.bio || `Articles by ${author.name}`,
   }
 }

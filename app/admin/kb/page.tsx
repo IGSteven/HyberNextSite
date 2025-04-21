@@ -106,7 +106,8 @@ export default function AdminKBPage() {
           setError(result.error || "Failed to delete article")
         }
       } else {
-        const response = await fetch(`/api/kb/categories?id=${itemToDelete.id}`, {
+        // Updated to use the new /api/kb/categories/manage endpoint
+        const response = await fetch(`/api/kb/categories/manage?id=${itemToDelete.id}`, {
           method: "DELETE",
         })
         const result = await response.json()

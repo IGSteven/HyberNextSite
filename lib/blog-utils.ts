@@ -1,6 +1,7 @@
 // Blog utility functions for both client and server components
 import type { BlogPost, Category, Author } from "./blog-types"
 import path from "path"
+import fs from "fs/promises"
 // Remove the direct import to avoid bundling MongoDB in client-side code
 // Instead, we'll dynamically import when needed
 
@@ -56,37 +57,45 @@ export async function getBlogData() {
 
 // Function to write blog data to storage
 export async function writeBlogData(data: any) {
-  return await safeMongoOperation(async () => {
-    const { connectToDatabase, collections } = await import('./mongodb');
-    const { db } = await connectToDatabase();
+  if (typeof window !== 'undefined') {
+    console.error("Cannot write blog data from client-side");
+    return false;
+  }
+
+  try {
+    // Check if MongoDB should be used
+    const { useMongoStorage } = await import('./mongodb');
     
-    // Clear existing data and insert new data
-    // For posts
-    if (data.posts && Array.isArray(data.posts)) {
-      await db.collection(collections.blogPosts).deleteMany({});
-      if (data.posts.length > 0) {
-        await db.collection(collections.blogPosts).insertMany(data.posts);
+    if (useMongoStorage()) {
+      try {
+        const { connectToDatabase, collections } = await import('./mongodb');
+        const { db } = await connectToDatabase();
+        
+        // Note: We're not deleting all documents and re-inserting anymore
+        // Instead, we're using individual operations in the action functions
+        // This function is mainly used for JSON file storage now
+        
+        console.log("MongoDB is configured as storage driver. Data is managed directly through action functions.");
+        return true;
+      } catch (error) {
+        console.error("Error writing to MongoDB:", error);
+        return false;
+      }
+    } else {
+      // Write to JSON file
+      const filePath = path.join(process.cwd(), "data", "blog-data.json");
+      try {
+        await fs.writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
+        return true;
+      } catch (error) {
+        console.error("Error writing to JSON file:", error);
+        return false;
       }
     }
-    
-    // For categories
-    if (data.categories && Array.isArray(data.categories)) {
-      await db.collection(collections.blogCategories).deleteMany({});
-      if (data.categories.length > 0) {
-        await db.collection(collections.blogCategories).insertMany(data.categories);
-      }
-    }
-    
-    // For authors
-    if (data.authors && Array.isArray(data.authors)) {
-      await db.collection(collections.authors).deleteMany({});
-      if (data.authors.length > 0) {
-        await db.collection(collections.authors).insertMany(data.authors);
-      }
-    }
-    
-    return true;
-  }, false);
+  } catch (error) {
+    console.error("Error in writeBlogData:", error);
+    return false;
+  }
 }
 
 // Function to get all blog posts

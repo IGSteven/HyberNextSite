@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,6 +22,15 @@ export default function CategoryForm({ category, isEdit = false }: CategoryFormP
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [name, setName] = useState(category?.name || "")
+  const [slug, setSlug] = useState(category?.slug || "")
+
+  // Generate slug from name for new categories
+  useEffect(() => {
+    if (!isEdit && name && !slug) {
+      setSlug(name.toLowerCase().replace(/ /g, "-").replace(/[^\w-]+/g, ""))
+    }
+  }, [name, isEdit, slug])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -73,18 +82,32 @@ export default function CategoryForm({ category, isEdit = false }: CategoryFormP
       <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-6">
         <div className="space-y-2">
           <Label htmlFor="name">Category Name</Label>
-          <Input id="name" name="name" defaultValue={category?.name || ""} required />
+          <Input 
+            id="name" 
+            name="name" 
+            defaultValue={category?.name || ""} 
+            required 
+            onChange={(e) => setName(e.target.value)}
+          />
         </div>
 
-        {isEdit && (
-          <div className="space-y-2">
-            <Label htmlFor="slug">Slug (Cannot be changed)</Label>
-            <Input id="slug" name="slug" defaultValue={category?.slug || ""} disabled className="bg-muted" />
-            <p className="text-sm text-muted-foreground">
-              The slug is used in URLs and cannot be changed after creation.
-            </p>
-          </div>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="slug">Slug {isEdit ? "(Cannot be changed)" : ""}</Label>
+          <Input 
+            id="slug" 
+            name="slug" 
+            value={slug} 
+            onChange={(e) => !isEdit && setSlug(e.target.value)}
+            disabled={isEdit} 
+            className={isEdit ? "bg-muted" : ""}
+            required
+          />
+          <p className="text-sm text-muted-foreground">
+            {isEdit 
+              ? "The slug is used in URLs and cannot be changed after creation."
+              : "URL-friendly version of the name. Auto-generated but can be edited."}
+          </p>
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>

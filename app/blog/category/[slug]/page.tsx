@@ -12,13 +12,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
   if (!category) {
     return {
-      title: "Category Not Found - HyberHost",
+      title: "Category Not Found - Blog",
       description: "The requested blog category could not be found.",
     }
   }
 
   return {
-    title: `${category.name} - HyberHost Blog`,
+    title: `${category.name} - Blog`,
     description: category.description || `Browse all posts in the ${category.name} category`,
   }
 }

@@ -24,16 +24,19 @@ const options = {
   }
 };
 
+// Check if we're in a browser environment - this is critical for avoiding SSR issues
+const isBrowser = typeof window !== 'undefined';
+
 // Only import fs dynamically on the server side
 let fs: any;
-if (typeof window === 'undefined') {
+if (!isBrowser) {
   // Only import on the server side
   fs = require('fs/promises');
 }
 
 export async function connectToDatabase() {
   // This function should only be called server-side
-  if (typeof window !== 'undefined') {
+  if (isBrowser) {
     throw new Error('This function is only meant to be called on the server side');
   }
 
@@ -78,7 +81,7 @@ export function useMongoStorage() {
 // Utility to migrate data from JSON to MongoDB if needed
 export async function migrateDataIfNeeded() {
   // This function should only be called server-side
-  if (typeof window !== 'undefined') {
+  if (isBrowser) {
     console.warn('migrateDataIfNeeded is only meant to be called on the server side');
     return;
   }
@@ -166,3 +169,9 @@ export async function migrateDataIfNeeded() {
     console.error('Error checking or migrating data:', error);
   }
 }
+
+// Add a dummy export for client components to prevent bundling issues
+export const clientSideStub = {
+  isClient: true,
+  message: 'This is a stub for client-side import safety'
+};

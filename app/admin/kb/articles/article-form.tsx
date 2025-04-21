@@ -11,13 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle, Loader2, Check, ChevronsUpDown } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import type { KBArticle, KBCategory } from "@/lib/blog-types"
+import type { KBArticle, KBCategory } from "@/lib/kb-types"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
+import { v4 as uuidv4 } from 'uuid'
 
-// Define the form schema
+// Define the form schema with clear required fields
 const articleFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
   slug: z.string().min(1, "Slug is required"),
@@ -26,7 +30,7 @@ const articleFormSchema = z.object({
   categoryIds: z.array(z.string()).min(1, "At least one category is required"),
   tags: z.string().optional(),
   status: z.enum(["draft", "published"]),
-  featured: z.boolean().default(false),
+  featured: z.boolean().default(false), // Making sure this has a default value
   authorId: z.string().min(1, "Author is required"),
 })
 
@@ -43,8 +47,9 @@ export function ArticleForm({ article }: ArticleFormProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [authorOpen, setAuthorOpen] = useState(false)
 
-  // Initialize the form
+  // Initialize the form with specific typing to match the schema
   const form = useForm<ArticleFormValues>({
     resolver: zodResolver(articleFormSchema),
     defaultValues: {
@@ -55,7 +60,7 @@ export function ArticleForm({ article }: ArticleFormProps) {
       categoryIds: article?.categoryIds || [],
       tags: article?.tags?.join(", ") || "",
       status: article?.status || "draft",
-      featured: article?.featured || false,
+      featured: article?.featured ?? false, // Using nullish coalescing to ensure a boolean
       authorId: article?.authorId || "",
     },
   })
@@ -66,7 +71,7 @@ export function ArticleForm({ article }: ArticleFormProps) {
       try {
         const [categoriesResponse, authorsResponse] = await Promise.all([
           fetch("/api/kb/categories"),
-          fetch("/api/admin/blog"), // Assuming this endpoint returns authors
+          fetch("/api/admin/blog/authors") 
         ])
 
         const categoriesData = await categoriesResponse.json()
@@ -115,7 +120,7 @@ export function ArticleForm({ article }: ArticleFormProps) {
     }
   }
 
-  // Handle form submission
+  // Handle form submission with correctly typed values
   const onSubmit = async (values: ArticleFormValues) => {
     setIsSaving(true)
     setError(null)
@@ -133,11 +138,14 @@ export function ArticleForm({ article }: ArticleFormProps) {
       const articleData = {
         ...values,
         tags,
-        id: article?.id || crypto.randomUUID(),
+        id: article?.id || uuidv4(), 
         createdAt: article?.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         publishedAt: values.status === "published" ? new Date().toISOString() : article?.publishedAt || null,
       }
+
+      // Debug log to check the data
+      console.log("Submitting article data:", articleData);
 
       // Send the request
       const response = await fetch("/api/kb/articles", {
@@ -155,9 +163,9 @@ export function ArticleForm({ article }: ArticleFormProps) {
       } else {
         setError(result.error || "Failed to save article")
       }
-    } catch (err) {
-      setError("An unexpected error occurred")
-      console.error(err)
+    } catch (err: any) {
+      console.error("Error saving article:", err);
+      setError(err.message || "An unexpected error occurred")
     } finally {
       setIsSaving(false)
     }
@@ -299,22 +307,51 @@ export function ArticleForm({ article }: ArticleFormProps) {
             control={form.control}
             name="authorId"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="flex flex-col">
                 <FormLabel>Author</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an author" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {authors.map((author) => (
-                      <SelectItem key={author.id} value={author.id}>
-                        {author.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Popover open={authorOpen} onOpenChange={setAuthorOpen}>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={authorOpen}
+                        className="justify-between"
+                      >
+                        {field.value
+                          ? authors.find((author) => author.id === field.value)?.name || "Select an author"
+                          : "Select an author"}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[300px]">
+                    <Command>
+                      <CommandInput placeholder="Search for an author..." />
+                      <CommandEmpty>No author found.</CommandEmpty>
+                      <CommandGroup className="max-h-[300px] overflow-y-auto">
+                        {authors.map((author) => (
+                          <CommandItem
+                            key={author.id}
+                            value={author.name}
+                            onSelect={() => {
+                              form.setValue("authorId", author.id);
+                              setAuthorOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                field.value === author.id ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {author.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}

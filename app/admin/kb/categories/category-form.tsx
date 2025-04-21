@@ -14,7 +14,8 @@ import { AlertCircle, Loader2 } from "lucide-react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import type { KBCategory } from "@/lib/blog-types"
+import type { KBCategory } from "@/lib/kb-types"
+import { v4 as uuidv4 } from 'uuid'
 
 // Define the form schema
 const categoryFormSchema = z.object({
@@ -97,25 +98,25 @@ export function CategoryForm({ category }: CategoryFormProps) {
     }
   }
 
-  // Handle form submission
+  // Handle form submission using API route instead of server actions
   const onSubmit = async (values: CategoryFormValues) => {
     setIsSaving(true)
     setError(null)
 
     try {
-      // Prepare the category data
-      const categoryData = {
+      // Prepare the request body
+      const requestBody = {
         ...values,
-        id: category?.id || crypto.randomUUID(),
+        id: category?.id // Only include ID if editing an existing category
       }
 
-      // Send the request
-      const response = await fetch("/api/kb/categories", {
+      // Use the API route with the appropriate method
+      const response = await fetch("/api/kb/categories/manage", {
         method: category ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(categoryData),
+        body: JSON.stringify(requestBody),
       })
 
       const result = await response.json()

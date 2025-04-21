@@ -99,9 +99,9 @@ export async function createKBArticle(formData: FormData): Promise<{ success: bo
     }
     
     // Process tags
-    const tags = tagsString ? tagsString.split(",")
+    const tags = tagsString.split(",")
       .map(tag => tag.trim())
-      .filter(tag => tag.length > 0) : [];
+      .filter(tag => tag.length > 0);
       
     // Extract category IDs
     const categoryIds: string[] = [];
@@ -172,9 +172,9 @@ export async function updateKBArticle(formData: FormData): Promise<{ success: bo
     }
     
     // Process tags
-    const tags = tagsString ? tagsString.split(",")
+    const tags = tagsString.split(",")
       .map(tag => tag.trim())
-      .filter(tag => tag.length > 0) : [];
+      .filter(tag => tag.length > 0);
       
     // Extract category IDs
     const categoryIds: string[] = [];
@@ -327,7 +327,7 @@ export async function createKBCategory(formData: FormData): Promise<{ success: b
       name,
       slug,
       description: description || "",
-      parentId: parentId && parentId !== "none" ? parentId : undefined
+      parentId: parentId || undefined
     };
     
     if (useMongoStorage()) {
@@ -374,7 +374,7 @@ export async function updateKBCategory(formData: FormData): Promise<{ success: b
       name,
       slug,
       description: description || "",
-      parentId: parentId && parentId !== "none" ? parentId : undefined
+      parentId: parentId || undefined
     };
     
     if (useMongoStorage()) {

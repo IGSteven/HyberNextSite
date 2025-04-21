@@ -31,7 +31,7 @@ const nextConfig = {
   devIndicators: {
     buildActivityPosition: 'bottom-right',
   },
-  // Also add allowedDevOrigins to address the cross-origin warning
+  // Add allowedDevOrigins to address the cross-origin warning
   allowedDevOrigins: ["http://10.230.3.6", "http://localhost"],
   webpack: (config, { isServer }) => {
     // More extensive handling of Node.js modules during browser builds
@@ -47,27 +47,32 @@ const nextConfig = {
         'timers/promises': false,
         dgram: false,
         os: false,
-        crypto: false,
-        stream: false,
+        crypto: require.resolve('crypto-browserify'),
+        stream: require.resolve('stream-browserify'),
         http: false,
         https: false,
         zlib: false,
         path: false,
         url: false,
-        util: false,
-        assert: false,
-        buffer: false,
-        process: false,
+        util: require.resolve('util/'),
+        assert: require.resolve('assert/'),
+        buffer: require.resolve('buffer/'),
+        process: require.resolve('process/browser'),
       };
+
+      // Explicitly handle MongoDB packages to prevent them from being bundled
+      config.module.rules.push({
+        test: /\/mongodb\/.*\/.*\.(js|ts)$|mongodb-client-encryption/,
+        use: 'null-loader'
+      });
       
-      // Add specific aliases to prevent MongoDB's client-side encryption modules from being included
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        './mongocryptd_manager': false,
-        './auto_encrypter': false,
-        'child_process': false,
-        'mongodb-client-encryption': false
-      };
+      // Add polyfills for browser environment
+      config.plugins.push(
+        new config.webpack.ProvidePlugin({
+          process: 'process/browser',
+          Buffer: ['buffer', 'Buffer'],
+        })
+      );
     }
     return config;
   },
