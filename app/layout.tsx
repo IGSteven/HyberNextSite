@@ -6,13 +6,28 @@ import { ThemeProvider } from "@/components/theme-provider"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 
+// MongoDB initialization for server components
+import { initMongoDB } from "@/lib/mongodb"
+
+// Attempt to initialize MongoDB connection at app startup
+// This is only executed on the server during build/SSR
+const mongoPromise = 
+  typeof window === 'undefined' && 
+  process.env.STORAGE_DRIVE === 'MONGODB' ? 
+  initMongoDB().catch(error => {
+    console.error('MongoDB initialization error (non-fatal):', error);
+    // We catch the error here to prevent it from crashing the app
+    // The app will fall back to JSON data if MongoDB connection fails
+  }) : 
+  Promise.resolve();
+
 export const metadata: Metadata = {
   title: {
     template: "%s | HyberHost",
     default: "HyberHost - Premium Web Hosting Services",
   },
   description: "Professional VPS and dedicated server hosting solutions for businesses of all sizes",
-    generator: 'v0.dev'
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -34,6 +49,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-
-import './globals.css'

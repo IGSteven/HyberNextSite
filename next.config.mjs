@@ -81,8 +81,28 @@ const nextConfig = {
         })
       );
     }
+    
+    // Add environment definition to help with MongoDB connection handling
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        'process.env.NEXT_RUNTIME': JSON.stringify(process.env.NEXT_RUNTIME || ''),
+        'process.env.VERCEL': JSON.stringify(process.env.VERCEL || ''),
+        'process.env.VERCEL_ENV': JSON.stringify(process.env.VERCEL_ENV || '')
+      })
+    );
+    
     return config;
   },
+  // Customize how errors are handled during build
+  onDemandEntries: {
+    // Reduce the time entries are kept in memory to optimize builds
+    maxInactiveAge: 15 * 1000,
+    // Number of pages that should be kept simultaneously without being disposed
+    pagesBufferLength: 2,
+  },
+  poweredByHeader: false,
+  // Set output to standalone for better Vercel compatibility 
+  output: 'standalone',
 }
 
 if (userConfig) {

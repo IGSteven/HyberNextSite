@@ -1,0 +1,21 @@
+{
+  "buildCommand": "next build",
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "MONGODB_DB": "site",
+    "STORAGE_DRIVE": "MONGODB",
+    "NODE_TLS_REJECT_UNAUTHORIZED": "1"
+  },
+  "builds": [
+    {
+      "src": "next.config.mjs",
+      "use": "@vercel/next"
+    }
+  ],
+  "build": {
+    "env": {
+      "NODE_ENV": "production",
+      "NODE_OPTIONS": "--max-old-space-size=1536"
+    }
+  }
+}

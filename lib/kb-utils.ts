@@ -2,22 +2,24 @@ import type { KBArticle, KBCategory } from "./kb-types"
 import kbData from "@/data/kb-data.json"
 import { getBlogData } from "./blog-utils"
 import type { Author } from "./blog-types"
-import { connectToDatabase, collections, useMongoStorage } from './mongodb';
 
 // Get all KB categories
 export async function getAllCategories(): Promise<KBCategory[]> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
-      const categories = await db.collection(collections.kbCategories).find({}).toArray();
-      return categories || [];
-    } catch (error) {
-      console.error("Error fetching KB categories from MongoDB:", error);
-      // Fall back to JSON
-    }
+  if (typeof window !== 'undefined') {
+    return kbData.categories;
   }
   
-  return kbData.categories;
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
+      const categories = await db.collection(collections.kbCategories).find({}).toArray();
+      return categories || [];
+    }, kbData.categories);
+  } catch (error) {
+    console.error("Error fetching KB categories:", error);
+    return kbData.categories;
+  }
 }
 
 // Alias for getAllCategories to maintain compatibility
@@ -25,9 +27,16 @@ export const getCategories = getAllCategories;
 
 // Get root categories (categories without a parent)
 export async function getRootCategories(): Promise<KBCategory[]> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
+  if (typeof window !== 'undefined') {
+    return kbData.categories.filter((category) => 
+      !category.parentId || category.parentId === "" || category.parentId === "none"
+    );
+  }
+  
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
       const categories = await db.collection(collections.kbCategories)
         .find({ 
           $or: [
@@ -38,33 +47,36 @@ export async function getRootCategories(): Promise<KBCategory[]> {
         })
         .toArray();
       return categories || [];
-    } catch (error) {
-      console.error("Error fetching root KB categories from MongoDB:", error);
-      // Fall back to JSON
-    }
+    }, kbData.categories.filter((category) => 
+      !category.parentId || category.parentId === "" || category.parentId === "none"
+    ));
+  } catch (error) {
+    console.error("Error fetching root KB categories:", error);
+    return kbData.categories.filter((category) => 
+      !category.parentId || category.parentId === "" || category.parentId === "none"
+    );
   }
-  
-  return kbData.categories.filter((category) => 
-    !category.parentId || category.parentId === "" || category.parentId === "none"
-  );
 }
 
 // Get subcategories of a specific category
 export async function getSubcategories(categoryId: string): Promise<KBCategory[]> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
+  if (typeof window !== 'undefined') {
+    return kbData.categories.filter((category) => category.parentId === categoryId);
+  }
+  
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
       const categories = await db.collection(collections.kbCategories)
         .find({ parentId: categoryId })
         .toArray();
       return categories || [];
-    } catch (error) {
-      console.error("Error fetching KB subcategories from MongoDB:", error);
-      // Fall back to JSON
-    }
+    }, kbData.categories.filter((category) => category.parentId === categoryId));
+  } catch (error) {
+    console.error("Error fetching KB subcategories:", error);
+    return kbData.categories.filter((category) => category.parentId === categoryId);
   }
-  
-  return kbData.categories.filter((category) => category.parentId === categoryId);
 }
 
 // Get child categories for a given parent category ID
@@ -75,91 +87,113 @@ export async function getChildCategories(parentId: string): Promise<KBCategory[]
 
 // Get category by ID
 export async function getCategoryById(id: string): Promise<KBCategory | undefined> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
-      const category = await db.collection(collections.kbCategories).findOne({ id });
-      return category || undefined;
-    } catch (error) {
-      console.error("Error fetching KB category by ID from MongoDB:", error);
-      // Fall back to JSON
-    }
+  if (typeof window !== 'undefined') {
+    return kbData.categories.find((category) => category.id === id);
   }
   
-  return kbData.categories.find((category) => category.id === id);
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
+      const category = await db.collection(collections.kbCategories).findOne({ id });
+      return category || undefined;
+    }, kbData.categories.find((category) => category.id === id));
+  } catch (error) {
+    console.error("Error fetching KB category by ID:", error);
+    return kbData.categories.find((category) => category.id === id);
+  }
 }
 
 // Get category by slug
 export async function getCategoryBySlug(slug: string): Promise<KBCategory | undefined> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
-      const category = await db.collection(collections.kbCategories).findOne({ slug });
-      return category || undefined;
-    } catch (error) {
-      console.error("Error fetching KB category by slug from MongoDB:", error);
-      // Fall back to JSON
-    }
+  if (typeof window !== 'undefined') {
+    return kbData.categories.find((category) => category.slug === slug);
   }
   
-  return kbData.categories.find((category) => category.slug === slug);
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
+      const category = await db.collection(collections.kbCategories).findOne({ slug });
+      return category || undefined;
+    }, kbData.categories.find((category) => category.slug === slug));
+  } catch (error) {
+    console.error("Error fetching KB category by slug:", error);
+    return kbData.categories.find((category) => category.slug === slug);
+  }
 }
 
 // Get all KB articles
 export async function getAllArticles(): Promise<KBArticle[]> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
-      const articles = await db.collection(collections.kbPosts).find({}).toArray();
-      return articles || [];
-    } catch (error) {
-      console.error("Error fetching KB articles from MongoDB:", error);
-      // Fall back to JSON
-    }
+  if (typeof window !== 'undefined') {
+    return kbData.articles;
   }
   
-  return kbData.articles;
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
+      const articles = await db.collection(collections.kbPosts).find({}).toArray();
+      return articles || [];
+    }, kbData.articles);
+  } catch (error) {
+    console.error("Error fetching KB articles:", error);
+    return kbData.articles;
+  }
 }
 
 // Get published KB articles
 export async function getPublishedArticles(): Promise<KBArticle[]> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
+  if (typeof window !== 'undefined') {
+    return kbData.articles.filter((article) => article.status === "published");
+  }
+  
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
       const articles = await db.collection(collections.kbPosts)
         .find({ status: "published" })
         .toArray();
       return articles || [];
-    } catch (error) {
-      console.error("Error fetching published KB articles from MongoDB:", error);
-      // Fall back to JSON
-    }
+    }, kbData.articles.filter((article) => article.status === "published"));
+  } catch (error) {
+    console.error("Error fetching published KB articles:", error);
+    return kbData.articles.filter((article) => article.status === "published");
   }
-  
-  return kbData.articles.filter((article) => article.status === "published");
 }
 
 // Get KB article by slug
 export async function getArticleBySlug(slug: string): Promise<KBArticle | undefined> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
-      const article = await db.collection(collections.kbPosts).findOne({ slug });
-      return article || undefined;
-    } catch (error) {
-      console.error("Error fetching KB article by slug from MongoDB:", error);
-      // Fall back to JSON
-    }
+  if (typeof window !== 'undefined') {
+    return kbData.articles.find((article) => article.slug === slug);
   }
   
-  return kbData.articles.find((article) => article.slug === slug);
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
+      const article = await db.collection(collections.kbPosts).findOne({ slug });
+      return article || undefined;
+    }, kbData.articles.find((article) => article.slug === slug));
+  } catch (error) {
+    console.error("Error fetching KB article by slug:", error);
+    return kbData.articles.find((article) => article.slug === slug);
+  }
 }
 
 // Get KB articles by category ID
 export async function getArticlesByCategoryId(categoryId: string): Promise<KBArticle[]> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
+  if (typeof window !== 'undefined') {
+    return kbData.articles.filter(
+      (article) => article.categoryIds && article.categoryIds.includes(categoryId) && article.status === "published",
+    );
+  }
+  
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
       const articles = await db.collection(collections.kbPosts)
         .find({ 
           status: "published",
@@ -167,15 +201,15 @@ export async function getArticlesByCategoryId(categoryId: string): Promise<KBArt
         })
         .toArray();
       return articles || [];
-    } catch (error) {
-      console.error("Error fetching KB articles by category ID from MongoDB:", error);
-      // Fall back to JSON
-    }
+    }, kbData.articles.filter(
+      (article) => article.categoryIds && article.categoryIds.includes(categoryId) && article.status === "published",
+    ));
+  } catch (error) {
+    console.error("Error fetching KB articles by category ID:", error);
+    return kbData.articles.filter(
+      (article) => article.categoryIds && article.categoryIds.includes(categoryId) && article.status === "published",
+    );
   }
-  
-  return kbData.articles.filter(
-    (article) => article.categoryIds && article.categoryIds.includes(categoryId) && article.status === "published",
-  );
 }
 
 // Get KB articles by category (matches the function signature expected by the category page)
@@ -192,9 +226,14 @@ export async function getArticlesByCategorySlug(slug: string): Promise<KBArticle
 
 // Get KB articles by author
 export async function getKBArticlesByAuthor(authorId: string): Promise<KBArticle[]> {
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
+  if (typeof window !== 'undefined') {
+    return kbData.articles.filter((article) => article.authorId === authorId && article.status === "published");
+  }
+  
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
       const articles = await db.collection(collections.kbPosts)
         .find({ 
           status: "published",
@@ -202,13 +241,11 @@ export async function getKBArticlesByAuthor(authorId: string): Promise<KBArticle
         })
         .toArray();
       return articles || [];
-    } catch (error) {
-      console.error("Error fetching KB articles by author from MongoDB:", error);
-      // Fall back to JSON
-    }
+    }, kbData.articles.filter((article) => article.authorId === authorId && article.status === "published"));
+  } catch (error) {
+    console.error("Error fetching KB articles by author:", error);
+    return kbData.articles.filter((article) => article.authorId === authorId && article.status === "published");
   }
-  
-  return kbData.articles.filter((article) => article.authorId === authorId && article.status === "published");
 }
 
 // Get author for an article
@@ -222,10 +259,31 @@ export async function searchArticles(query: string): Promise<KBArticle[]> {
   if (!query) return [];
 
   const lowerQuery = query.toLowerCase();
+  const fallbackResults = kbData.articles.filter((article) => {
+    // Only include published articles
+    if (article.status !== "published") return false;
 
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
+    // Search in title, content, excerpt, tags
+    return (
+      article.title.toLowerCase().includes(lowerQuery) ||
+      (article.content && article.content.toLowerCase().includes(lowerQuery)) ||
+      (article.excerpt && article.excerpt.toLowerCase().includes(lowerQuery)) ||
+      (article.tags && article.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)))
+    );
+  });
+
+  if (typeof window !== 'undefined') {
+    return fallbackResults;
+  }
+  
+  try {
+    const { safeMongoDbOperation, collections, useMongoStorage } = await import('./mongodb');
+    
+    if (!useMongoStorage()) {
+      return fallbackResults;
+    }
+    
+    return await safeMongoDbOperation(async (db) => {
       // MongoDB text search requires a text index to be created, but we can use a basic search for now
       const articles = await db.collection(collections.kbPosts)
         .find({ 
@@ -239,24 +297,11 @@ export async function searchArticles(query: string): Promise<KBArticle[]> {
         })
         .toArray();
       return articles || [];
-    } catch (error) {
-      console.error("Error searching KB articles in MongoDB:", error);
-      // Fall back to JSON
-    }
+    }, fallbackResults);
+  } catch (error) {
+    console.error("Error searching KB articles:", error);
+    return fallbackResults;
   }
-
-  return kbData.articles.filter((article) => {
-    // Only include published articles
-    if (article.status !== "published") return false;
-
-    // Search in title, content, excerpt, tags
-    return (
-      article.title.toLowerCase().includes(lowerQuery) ||
-      (article.content && article.content.toLowerCase().includes(lowerQuery)) ||
-      (article.excerpt && article.excerpt.toLowerCase().includes(lowerQuery)) ||
-      (article.tags && article.tags.some((tag) => tag.toLowerCase().includes(lowerQuery)))
-    );
-  });
 }
 
 // Get breadcrumb trail for a category
@@ -281,101 +326,57 @@ export async function getBreadcrumbsForCategory(categoryId: string): Promise<KBC
 // Get related articles
 export async function getRelatedArticles(articleId: string, limit = 3): Promise<KBArticle[]> {
   // First get the article itself
-  let article: KBArticle | undefined;
-  
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
-      article = await db.collection(collections.kbPosts).findOne({ id: articleId });
-    } catch (error) {
-      console.error("Error fetching article for related articles from MongoDB:", error);
-      // Fall back to JSON
-      article = kbData.articles.find((a) => a.id === articleId);
-    }
-  } else {
-    article = kbData.articles.find((a) => a.id === articleId);
-  }
-  
+  const article = await getArticleById(articleId);
   if (!article) return [];
 
   // Get articles from the same category
-  let sameCategory: KBArticle[] = [];
+  const sameCategory = await getArticlesByCategoryId(article.categoryIds[0]);
   
-  if (useMongoStorage()) {
-    try {
-      const { db } = await connectToDatabase();
-      sameCategory = await db.collection(collections.kbPosts)
-        .find({ 
-          id: { $ne: articleId },
-          status: "published",
-          categoryIds: { $in: article.categoryIds || [] }
-        })
-        .limit(limit)
-        .toArray();
-    } catch (error) {
-      console.error("Error fetching related articles by category from MongoDB:", error);
-      // Fall back to JSON using the existing filtering logic below
-      sameCategory = [];
-    }
-  }
-  
-  // If not using MongoDB or if MongoDB query failed, use the local data
-  if (!useMongoStorage() || sameCategory.length === 0) {
-    sameCategory = kbData.articles.filter(
-      (a) =>
-        a.id !== articleId &&
-        a.categoryIds &&
-        article.categoryIds &&
-        a.categoryIds.some((id) => article.categoryIds.includes(id)) &&
-        a.status === "published",
-    );
-  }
+  // Filter out the current article
+  const filteredSameCategory = sameCategory.filter(a => a.id !== articleId);
 
   // If we have enough articles from the same category, return them
-  if (sameCategory.length >= limit) {
-    return sameCategory.slice(0, limit);
+  if (filteredSameCategory.length >= limit) {
+    return filteredSameCategory.slice(0, limit);
   }
 
   // Otherwise, get articles with similar tags
   const articleTags = article.tags || [];
-  let withTags: KBArticle[] = [];
   
-  if (useMongoStorage() && articleTags.length > 0) {
-    try {
-      const { db } = await connectToDatabase();
-      // Find articles with similar tags that aren't in the same category
-      withTags = await db.collection(collections.kbPosts)
-        .find({ 
-          id: { $ne: articleId },
-          status: "published",
-          tags: { $in: articleTags },
-          categoryIds: { $nin: article.categoryIds || [] }
-        })
-        .limit(limit - sameCategory.length)
-        .toArray();
-    } catch (error) {
-      console.error("Error fetching related articles by tags from MongoDB:", error);
-      // Fall back to JSON using the existing filtering logic below
-      withTags = [];
-    }
-  }
-  
-  // If not using MongoDB or if MongoDB query failed, use the local data
-  if (!useMongoStorage() || withTags.length === 0) {
-    withTags = kbData.articles.filter(
-      (a) =>
-        a.id !== articleId &&
-        a.categoryIds &&
-        article.categoryIds &&
-        !a.categoryIds.some((id) => article.categoryIds.includes(id)) &&
-        a.status === "published" &&
-        a.tags &&
-        a.tags.some((tag) => articleTags.includes(tag)),
-    );
-  }
+  // Get published articles that aren't in the current category but have matching tags
+  const publishedArticles = await getPublishedArticles();
+  const withTags = publishedArticles.filter(
+    (a) =>
+      a.id !== articleId &&
+      a.categoryIds &&
+      article.categoryIds &&
+      !a.categoryIds.some((id) => article.categoryIds.includes(id)) &&
+      a.status === "published" &&
+      a.tags &&
+      a.tags.some((tag) => articleTags.includes(tag)),
+  );
 
   // Combine and limit
-  return [...sameCategory, ...withTags].slice(0, limit);
+  return [...filteredSameCategory, ...withTags].slice(0, limit);
+}
+
+// Get article by ID
+export async function getArticleById(id: string): Promise<KBArticle | undefined> {
+  if (typeof window !== 'undefined') {
+    return kbData.articles.find((article) => article.id === id);
+  }
+  
+  try {
+    const { safeMongoDbOperation, collections } = await import('./mongodb');
+    
+    return await safeMongoDbOperation(async (db) => {
+      const article = await db.collection(collections.kbPosts).findOne({ id });
+      return article || undefined;
+    }, kbData.articles.find((article) => article.id === id));
+  } catch (error) {
+    console.error("Error fetching KB article by ID:", error);
+    return kbData.articles.find((article) => article.id === id);
+  }
 }
 
 // Create a type definition file for KB data

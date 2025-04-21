@@ -21,7 +21,19 @@ const options = {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
+  // TLS/SSL settings - we use tls instead of ssl (more modern)
+  tls: true,
+  tlsInsecure: false, // Crucial for Vercel - do not allow insecure connections
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
+  // Add connection timeout
+  connectTimeoutMS: 10000, // Increase timeout for Vercel environment
+  socketTimeoutMS: 30000,
+  retryWrites: true,
+  maxIdleTimeMS: 120000, // 2 minutes
+  minPoolSize: 1,
+  maxPoolSize: 10,
 };
 
 // Check if we're in a browser environment - this is critical for avoiding SSR issues
@@ -51,12 +63,22 @@ export async function connectToDatabase() {
   }
 
   try {
-    // Connect to MongoDB
+    console.log('Attempting to connect to MongoDB...');
+    
+    // Parse the MongoDB URI to detect if it's Atlas
+    const isAtlas = MONGODB_URI.includes('mongodb+srv');
+    
+    // Create client with appropriate options
     const client = new MongoClient(MONGODB_URI, options);
+    
+    // Attempt connection
     await client.connect();
     const db = client.db(MONGODB_DB);
-
-    console.log(`Connected to MongoDB database: ${MONGODB_DB}`);
+    
+    // Verify connection with a ping
+    await db.command({ ping: 1 });
+    
+    console.log(`Successfully connected to MongoDB database: ${MONGODB_DB}`);
 
     // Cache the connection
     cachedClient = client;
@@ -65,13 +87,39 @@ export async function connectToDatabase() {
     return { client, db };
   } catch (error) {
     console.error('MongoDB connection error:', error);
+    // Let the error propagate to be handled by the caller
+    throw error;
+  }
+}
+
+// Add this function to help with proper connection initialization in Vercel
+export async function initMongoDB() {
+  if (isBrowser) {
+    console.log('MongoDB initialization skipped in browser environment');
+    return;
+  }
+  
+  if (!useMongoStorage()) {
+    console.log('MongoDB storage not enabled, skipping initialization');
+    return;
+  }
+  
+  try {
+    console.log('Initializing MongoDB connection...');
+    const connection = await connectToDatabase();
     
-    // During build, we want to continue rather than fail
-    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
-      console.log('Using fallback data during build process');
-      return { client: null, db: null, isError: true };
-    }
+    // Verify connection with a ping to ensure it's working properly
+    const { db } = connection;
+    await db.command({ ping: 1 });
     
+    console.log('MongoDB connection initialized successfully');
+    
+    // Optionally run data migration if needed
+    await migrateDataIfNeeded();
+    
+    return connection;
+  } catch (error) {
+    console.error('Failed to initialize MongoDB:', error);
     throw error;
   }
 }
@@ -90,6 +138,21 @@ export function useMongoStorage() {
   return process.env.STORAGE_DRIVE === 'MONGODB';
 }
 
+// Safe wrapper for MongoDB operations with fallback
+export async function safeMongoDbOperation<T>(operation: (db: any) => Promise<T>, fallback: T): Promise<T> {
+  if (!useMongoStorage()) {
+    return fallback;
+  }
+  
+  try {
+    const { db } = await connectToDatabase();
+    return await operation(db);
+  } catch (error) {
+    console.error('MongoDB operation failed:', error);
+    return fallback;
+  }
+}
+
 // Utility to migrate data from JSON to MongoDB if needed
 export async function migrateDataIfNeeded() {
   // This function should only be called server-side
@@ -101,92 +164,95 @@ export async function migrateDataIfNeeded() {
   if (!useMongoStorage()) return;
   
   try {
-    const dbConnection = await connectToDatabase();
+    // Connect to MongoDB
+    const { db } = await connectToDatabase();
     
-    // If connection error occurred and we're in build mode, skip migration
-    if (dbConnection.isError) {
-      console.log('Skipping data migration due to MongoDB connection error');
-      return;
-    }
-    
-    const { db } = dbConnection;
-    
-    // Check if collections are empty
-    const blogPostsCount = await db.collection(collections.blogPosts).countDocuments();
-    const blogCategoriesCount = await db.collection(collections.blogCategories).countDocuments();
-    const authorsCount = await db.collection(collections.authors).countDocuments();
-    const kbPostsCount = await db.collection(collections.kbPosts).countDocuments();
-    const kbCategoriesCount = await db.collection(collections.kbCategories).countDocuments();
-    
-    console.log(`DB Collection Counts - Blog Posts: ${blogPostsCount}, Blog Categories: ${blogCategoriesCount}, Authors: ${authorsCount}, KB Posts: ${kbPostsCount}, KB Categories: ${kbCategoriesCount}`);
-    
-    // If all collections have data, no need to migrate
-    if (blogPostsCount > 0 && blogCategoriesCount > 0 && authorsCount > 0 && kbPostsCount > 0 && kbCategoriesCount > 0) {
-      console.log('All collections have data, no migration needed');
-      return;
+    // Check if collections exist and have data
+    try {
+      // Check if collections are empty
+      const blogPostsCount = await db.collection(collections.blogPosts).countDocuments();
+      const blogCategoriesCount = await db.collection(collections.blogCategories).countDocuments();
+      const authorsCount = await db.collection(collections.authors).countDocuments();
+      const kbPostsCount = await db.collection(collections.kbPosts).countDocuments();
+      const kbCategoriesCount = await db.collection(collections.kbCategories).countDocuments();
+      
+      console.log(`DB Collection Counts - Blog Posts: ${blogPostsCount}, Blog Categories: ${blogCategoriesCount}, Authors: ${authorsCount}, KB Posts: ${kbPostsCount}, KB Categories: ${kbCategoriesCount}`);
+      
+      // If all collections have data, no need to migrate
+      if (blogPostsCount > 0 && blogCategoriesCount > 0 && authorsCount > 0 && kbPostsCount > 0 && kbCategoriesCount > 0) {
+        console.log('All collections have data, no migration needed');
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking collection counts:', error);
+      throw error;
     }
     
     console.log('Some collections are empty, migrating data from JSON files...');
     
     // Migrate blog data if needed
-    if (blogPostsCount === 0 || blogCategoriesCount === 0 || authorsCount === 0) {
-      try {
-        // Read blog data from JSON
-        const blogDataPath = path.join(process.cwd(), 'data', 'blog-data.json');
-        const blogDataText = await fs.readFile(blogDataPath, 'utf8');
-        const blogData = JSON.parse(blogDataText);
-        
-        // Insert blog posts if needed
-        if (blogPostsCount === 0 && blogData.posts && blogData.posts.length > 0) {
-          console.log(`Migrating ${blogData.posts.length} blog posts to MongoDB...`);
-          await db.collection(collections.blogPosts).insertMany(blogData.posts);
-        }
-        
-        // Insert blog categories if needed
-        if (blogCategoriesCount === 0 && blogData.categories && blogData.categories.length > 0) {
-          console.log(`Migrating ${blogData.categories.length} blog categories to MongoDB...`);
-          await db.collection(collections.blogCategories).insertMany(blogData.categories);
-        }
-        
-        // Insert authors if needed
-        if (authorsCount === 0 && blogData.authors && blogData.authors.length > 0) {
-          console.log(`Migrating ${blogData.authors.length} authors to MongoDB...`);
-          await db.collection(collections.authors).insertMany(blogData.authors);
-        }
-        
-        console.log('Blog data migration completed');
-      } catch (error) {
-        console.error('Error migrating blog data:', error);
+    try {
+      // Read blog data from JSON
+      const blogDataPath = path.join(process.cwd(), 'data', 'blog-data.json');
+      const blogDataText = await fs.readFile(blogDataPath, 'utf8');
+      const blogData = JSON.parse(blogDataText);
+      
+      // Insert blog posts if needed
+      const blogPostsCount = await db.collection(collections.blogPosts).countDocuments();
+      if (blogPostsCount === 0 && blogData.posts && blogData.posts.length > 0) {
+        console.log(`Migrating ${blogData.posts.length} blog posts to MongoDB...`);
+        await db.collection(collections.blogPosts).insertMany(blogData.posts);
       }
+      
+      // Insert blog categories if needed
+      const blogCategoriesCount = await db.collection(collections.blogCategories).countDocuments();
+      if (blogCategoriesCount === 0 && blogData.categories && blogData.categories.length > 0) {
+        console.log(`Migrating ${blogData.categories.length} blog categories to MongoDB...`);
+        await db.collection(collections.blogCategories).insertMany(blogData.categories);
+      }
+      
+      // Insert authors if needed
+      const authorsCount = await db.collection(collections.authors).countDocuments();
+      if (authorsCount === 0 && blogData.authors && blogData.authors.length > 0) {
+        console.log(`Migrating ${blogData.authors.length} authors to MongoDB...`);
+        await db.collection(collections.authors).insertMany(blogData.authors);
+      }
+      
+      console.log('Blog data migration completed');
+    } catch (error) {
+      console.error('Error migrating blog data:', error);
+      throw error;
     }
     
     // Migrate KB data if needed
-    if (kbPostsCount === 0 || kbCategoriesCount === 0) {
-      try {
-        // Read KB data from JSON
-        const kbDataPath = path.join(process.cwd(), 'data', 'kb-data.json');
-        const kbDataText = await fs.readFile(kbDataPath, 'utf8');
-        const kbData = JSON.parse(kbDataText);
-        
-        // Insert KB posts if needed
-        if (kbPostsCount === 0 && kbData.articles && kbData.articles.length > 0) {
-          console.log(`Migrating ${kbData.articles.length} KB articles to MongoDB...`);
-          await db.collection(collections.kbPosts).insertMany(kbData.articles);
-        }
-        
-        // Insert KB categories if needed
-        if (kbCategoriesCount === 0 && kbData.categories && kbData.categories.length > 0) {
-          console.log(`Migrating ${kbData.categories.length} KB categories to MongoDB...`);
-          await db.collection(collections.kbCategories).insertMany(kbData.categories);
-        }
-        
-        console.log('KB data migration completed');
-      } catch (error) {
-        console.error('Error migrating KB data:', error);
+    try {
+      // Read KB data from JSON
+      const kbDataPath = path.join(process.cwd(), 'data', 'kb-data.json');
+      const kbDataText = await fs.readFile(kbDataPath, 'utf8');
+      const kbData = JSON.parse(kbDataText);
+      
+      // Insert KB posts if needed
+      const kbPostsCount = await db.collection(collections.kbPosts).countDocuments();
+      if (kbPostsCount === 0 && kbData.articles && kbData.articles.length > 0) {
+        console.log(`Migrating ${kbData.articles.length} KB articles to MongoDB...`);
+        await db.collection(collections.kbPosts).insertMany(kbData.articles);
       }
+      
+      // Insert KB categories if needed
+      const kbCategoriesCount = await db.collection(collections.kbCategories).countDocuments();
+      if (kbCategoriesCount === 0 && kbData.categories && kbData.categories.length > 0) {
+        console.log(`Migrating ${kbData.categories.length} KB categories to MongoDB...`);
+        await db.collection(collections.kbCategories).insertMany(kbData.categories);
+      }
+      
+      console.log('KB data migration completed');
+    } catch (error) {
+      console.error('Error migrating KB data:', error);
+      throw error;
     }
   } catch (error) {
     console.error('Error checking or migrating data:', error);
+    throw error;
   }
 }
 
