@@ -50,18 +50,30 @@ export async function connectToDatabase() {
     return { client: cachedClient, db: cachedDb };
   }
 
-  // Connect to MongoDB
-  const client = new MongoClient(MONGODB_URI, options);
-  await client.connect();
-  const db = client.db(MONGODB_DB);
+  try {
+    // Connect to MongoDB
+    const client = new MongoClient(MONGODB_URI, options);
+    await client.connect();
+    const db = client.db(MONGODB_DB);
 
-  console.log(`Connected to MongoDB database: ${MONGODB_DB}`);
+    console.log(`Connected to MongoDB database: ${MONGODB_DB}`);
 
-  // Cache the connection
-  cachedClient = client;
-  cachedDb = db;
+    // Cache the connection
+    cachedClient = client;
+    cachedDb = db;
 
-  return { client, db };
+    return { client, db };
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    
+    // During build, we want to continue rather than fail
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+      console.log('Using fallback data during build process');
+      return { client: null, db: null, isError: true };
+    }
+    
+    throw error;
+  }
 }
 
 // Collection names export for reuse
@@ -89,7 +101,15 @@ export async function migrateDataIfNeeded() {
   if (!useMongoStorage()) return;
   
   try {
-    const { db } = await connectToDatabase();
+    const dbConnection = await connectToDatabase();
+    
+    // If connection error occurred and we're in build mode, skip migration
+    if (dbConnection.isError) {
+      console.log('Skipping data migration due to MongoDB connection error');
+      return;
+    }
+    
+    const { db } = dbConnection;
     
     // Check if collections are empty
     const blogPostsCount = await db.collection(collections.blogPosts).countDocuments();
