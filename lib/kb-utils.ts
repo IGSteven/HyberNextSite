@@ -29,7 +29,13 @@ export async function getRootCategories(): Promise<KBCategory[]> {
     try {
       const { db } = await connectToDatabase();
       const categories = await db.collection(collections.kbCategories)
-        .find({ parentId: { $exists: false } })
+        .find({ 
+          $or: [
+            { parentId: { $exists: false } },
+            { parentId: null },
+            { parentId: "" }
+          ] 
+        })
         .toArray();
       return categories || [];
     } catch (error) {
@@ -38,7 +44,9 @@ export async function getRootCategories(): Promise<KBCategory[]> {
     }
   }
   
-  return kbData.categories.filter((category) => !category.parentId);
+  return kbData.categories.filter((category) => 
+    !category.parentId || category.parentId === "" || category.parentId === "none"
+  );
 }
 
 // Get subcategories of a specific category
