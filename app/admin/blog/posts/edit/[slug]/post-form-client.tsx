@@ -14,9 +14,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { AlertCircle, Save, ArrowLeft } from "lucide-react"
 import type { BlogPost, Category, Author } from "@/lib/blog-types"
-import { createPost, updatePost } from "@/app/actions/blog-actions"
+import { createPost, updatePost, getAuthorsAction } from "@/app/actions/blog-actions"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { getAuthors } from "@/lib/blog-utils"
 
 interface PostFormProps {
   post?: BlogPost
@@ -35,7 +34,8 @@ export default function PostFormClient({ post, categories, isEdit = false }: Pos
 
   useEffect(() => {
     const fetchAuthors = async () => {
-      const authorList = await getAuthors()
+      // Use the server action instead of directly calling blog-utils
+      const authorList = await getAuthorsAction()
       setAuthors(authorList)
     }
     fetchAuthors()

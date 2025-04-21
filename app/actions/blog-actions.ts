@@ -619,3 +619,14 @@ export async function deleteAuthor(id: string): Promise<{ success: boolean; erro
     return { success: false, error: error.message || "Failed to delete author" }
   }
 }
+
+export async function getAuthorsAction(): Promise<any[]> {
+  try {
+    // Use the existing function from blog-utils - it's safe here because this is a server action
+    const blogData = await readBlogData();
+    return blogData.authors || [];
+  } catch (error: any) {
+    console.error("Error fetching authors:", error);
+    return [];
+  }
+}
