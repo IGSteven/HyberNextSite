@@ -50,6 +50,7 @@
     "mongodb": "^6.15.0",
     "next": "15.2.4",
     "next-themes": "latest",
+    "openai": "^4.95.1",
     "path": "latest",
     "react": "^19",
     "react-datepicker": "latest",

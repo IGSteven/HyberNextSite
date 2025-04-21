@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertCircle, Loader2, Check, ChevronsUpDown } from "lucide-react"
+import { AlertCircle, Loader2, Check, ChevronsUpDown, Sparkles } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -20,6 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { v4 as uuidv4 } from 'uuid'
+import { useToast } from "@/hooks/use-toast"
 
 // Define the form schema with clear required fields
 const articleFormSchema = z.object({
@@ -42,12 +44,197 @@ interface ArticleFormProps {
 
 export function ArticleForm({ article }: ArticleFormProps) {
   const router = useRouter()
+  const { toast } = useToast()
   const [categories, setCategories] = useState<KBCategory[]>([])
   const [authors, setAuthors] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [authorOpen, setAuthorOpen] = useState(false)
+  
+  // States for AI generation
+  const [generatingTitle, setGeneratingTitle] = useState(false)
+  const [generatingExcerpt, setGeneratingExcerpt] = useState(false)
+  const [generatingContent, setGeneratingContent] = useState(false)
+
+  // Function to generate content with ChatGPT
+  const generateWithAI = async (field: 'title' | 'excerpt' | 'content') => {
+    // Set the loading state for the specific field
+    if (field === 'title') setGeneratingTitle(true)
+    else if (field === 'excerpt') setGeneratingExcerpt(true)
+    else if (field === 'content') setGeneratingContent(true)
+
+    try {
+      // Get current field values to use in the prompt
+      const currentTitle = form.getValues('title')
+      const currentExcerpt = form.getValues('excerpt')
+      const currentContent = form.getValues('content')
+      
+      // Get selected categories to provide context
+      const selectedCategoryIds = form.getValues('categoryIds') || []
+      const selectedCategories = categories
+        .filter(cat => selectedCategoryIds.includes(cat.id))
+        .map(cat => cat.name)
+      
+      // Create the prompt based on which field we're generating
+      let prompt = ''
+      
+      if (field === 'title') {
+        prompt = `Generate a concise, informative title for a knowledge base article for HyberHost (a web hosting company).`
+        
+        if (currentExcerpt) {
+          prompt += ` Based on this excerpt: "${currentExcerpt}"`
+        }
+        
+        if (currentContent) {
+          prompt += ` The article content begins with: "${currentContent.substring(0, 200)}..."`
+        }
+        
+        if (selectedCategories.length > 0) {
+          prompt += ` The article is categorized as: ${selectedCategories.join(', ')}.`
+        }
+        
+        prompt += ` The title should be SEO-friendly and clearly describe what the article is about.`
+      } 
+      else if (field === 'excerpt') {
+        prompt = `Write a clear, concise excerpt (1-2 sentences) for a knowledge base article for HyberHost (a web hosting company).`
+        
+        if (currentTitle) {
+          prompt += ` The article title is: "${currentTitle}"`
+        }
+        
+        if (currentContent) {
+          prompt += ` The article content begins with: "${currentContent.substring(0, 200)}..."`
+        }
+        
+        if (selectedCategories.length > 0) {
+          prompt += ` The article is categorized as: ${selectedCategories.join(', ')}.`
+        }
+        
+        prompt += ` The excerpt should summarize the key point of the article and entice users to read more.`
+      }
+      else if (field === 'content') {
+        prompt = `Title: ${currentTitle || '[Your title or article idea]'}
+Slug: ${form.getValues('slug') || '[your-slug] (or leave blank)'}
+Excerpt: ${currentExcerpt || '[optional short preview text]'}
+
+Content/Prompt:
+"""
+${currentContent && currentContent.trim() ? currentContent : (currentTitle ? `This article will provide information about: ${currentTitle}` : '[Your rough notes, article idea, or partial content]')}
+${selectedCategories.length > 0 ? `\nCategories: ${selectedCategories.join(', ')}` : ''}
+"""
+
+Instructions:
+- Write a **complete Knowledge Base article** in **Markdown**.
+- Assume the audience is **hosting customers** (server hosting, VPS, dedicated, cloud servers).
+- Use professional but friendly language ("your server", "on our servers", "as a hosting customer", etc.).
+- Provide **examples that work on common Linux distributions** (AlmaLinux, Ubuntu, Debian, Rocky Linux).
+- Structure clearly with headings, numbered steps, and code blocks where needed.
+- Add a **Conclusion** or "Next Steps" if appropriate.
+`
+        
+        // Use streaming for content generation to handle large articles
+        try {
+          // Make the API request to your backend endpoint with streaming enabled
+          const response = await fetch('/api/ai/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt, stream: true })
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to generate content');
+          }
+
+          // Set up streaming handling
+          const reader = response.body?.getReader();
+          if (!reader) {
+            throw new Error('Stream reader not available');
+          }
+
+          let receivedContent = '';
+          let decoder = new TextDecoder();
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            // Decode the chunk
+            const chunk = decoder.decode(value, { stream: true });
+            receivedContent += chunk;
+          }
+
+          // Process the complete JSON response
+          try {
+            // Extract content from the response JSON
+            const result = JSON.parse(receivedContent);
+            if (result.content) {
+              form.setValue('content', result.content.trim());
+              toast({
+                title: "AI Generated Content",
+                description: "Successfully generated content with streaming",
+                variant: "default",
+              });
+            } else {
+              throw new Error('No content returned from streaming');
+            }
+          } catch (jsonError) {
+            console.error("Error parsing streaming response:", jsonError);
+            throw new Error('Invalid response format from streaming');
+          }
+          
+          return; // Exit early as we've handled the content
+        } catch (streamingError) {
+          console.error("Streaming error:", streamingError);
+          // Fall back to non-streaming approach if streaming fails
+          console.log("Falling back to non-streaming approach");
+        }
+      }
+      
+      // Make the API request to your backend endpoint that will call OpenAI
+      const response = await fetch('/api/ai/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate content')
+      }
+
+      const data = await response.json()
+      
+      // Update the form with the generated content
+      if (data.content) {
+        form.setValue(field, data.content.trim())
+        
+        // If title was generated, also update the slug
+        if (field === 'title') {
+          form.setValue('slug', generateSlug(data.content.trim()))
+        }
+        
+        toast({
+          title: "AI Generated Content",
+          description: `Successfully generated ${field}`,
+          variant: "default",
+        })
+      } else {
+        throw new Error('No content returned')
+      }
+    } catch (err: any) {
+      console.error(`Error generating ${field}:`, err)
+      toast({
+        title: "Generation Failed",
+        description: err.message || `Failed to generate ${field}`,
+        variant: "destructive",
+      })
+    } finally {
+      // Reset loading state
+      if (field === 'title') setGeneratingTitle(false)
+      else if (field === 'excerpt') setGeneratingExcerpt(false)
+      else if (field === 'content') setGeneratingContent(false)
+    }
+  }
 
   // Initialize the form with specific typing to match the schema
   const form = useForm<ArticleFormValues>({
@@ -196,9 +383,37 @@ export function ArticleForm({ article }: ArticleFormProps) {
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Title</FormLabel>
+                <div className="flex justify-between items-center">
+                  <FormLabel>Title</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => generateWithAI('title')}
+                          disabled={generatingTitle}
+                          className="h-8 w-8"
+                        >
+                          {generatingTitle ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-hyber-orange" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Generate title with AI</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <FormControl>
-                  <Input {...field} onChange={handleTitleChange} />
+                  <div className="relative">
+                    <Input {...field} onChange={handleTitleChange} />
+                    {generatingTitle && (
+                      <div className="absolute inset-0 bg-background/50 flex items-center justify-center rounded-md">
+                        <Loader2 className="h-5 w-5 animate-spin text-hyber-orange" />
+                      </div>
+                    )}
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -225,9 +440,37 @@ export function ArticleForm({ article }: ArticleFormProps) {
             name="excerpt"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Excerpt</FormLabel>
+                <div className="flex justify-between items-center">
+                  <FormLabel>Excerpt</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => generateWithAI('excerpt')}
+                          disabled={generatingExcerpt}
+                          className="h-8 w-8"
+                        >
+                          {generatingExcerpt ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-hyber-orange" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Generate excerpt with AI</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <FormControl>
-                  <Textarea {...field} rows={3} />
+                  <div className="relative">
+                    <Textarea {...field} rows={3} />
+                    {generatingExcerpt && (
+                      <div className="absolute inset-0 bg-background/50 flex items-center justify-center rounded-md">
+                        <Loader2 className="h-5 w-5 animate-spin text-hyber-orange" />
+                      </div>
+                    )}
+                  </div>
                 </FormControl>
                 <FormDescription>A brief summary of the article.</FormDescription>
                 <FormMessage />
@@ -240,11 +483,49 @@ export function ArticleForm({ article }: ArticleFormProps) {
             name="content"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Content (Markdown)</FormLabel>
+                <div className="flex justify-between items-center">
+                  <FormLabel>Content (Markdown)</FormLabel>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => generateWithAI('content')}
+                          disabled={generatingContent}
+                          className="h-8 w-8"
+                        >
+                          {generatingContent ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4 text-hyber-orange" />}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Generate content with AI</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <FormControl>
-                  <Textarea {...field} rows={15} />
+                  <div className="relative">
+                    <Textarea 
+                      {...field} 
+                      rows={15} 
+                      placeholder="Use the sparkle button to auto-generate content based on the title"
+                    />
+                    {generatingContent && (
+                      <div className="absolute inset-0 bg-background/50 flex items-center justify-center rounded-md">
+                        <div className="text-center">
+                          <Loader2 className="h-6 w-6 animate-spin mx-auto text-hyber-orange mb-2" />
+                          <p className="text-sm text-muted-foreground">Generating article content from title...</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </FormControl>
-                <FormDescription>Write your article content using Markdown. HTML is also supported.</FormDescription>
+                <FormDescription>
+                  Write your article content using Markdown. HTML is also supported.
+                  Click the sparkle button to generate content based on the title.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
