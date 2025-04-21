@@ -1,9 +1,9 @@
 // Import polyfills at the top of the file
 import cryptoBrowserify from 'crypto-browserify';
 import streamBrowserify from 'stream-browserify';
-import utilLib from 'util/';
-import assertLib from 'assert/';
-import bufferLib from 'buffer/';
+import util from 'util';
+import assert from 'assert';
+import { Buffer } from 'buffer';
 import process from 'process/browser';
 
 let userConfig = undefined
@@ -62,9 +62,9 @@ const nextConfig = {
         zlib: false,
         path: false,
         url: false,
-        util: utilLib,
-        assert: assertLib,
-        buffer: bufferLib,
+        util: util,
+        assert: assert,
+        buffer: Buffer,
         process: process,
       };
 
