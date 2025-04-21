@@ -1,3 +1,11 @@
+// Import polyfills at the top of the file
+import cryptoBrowserify from 'crypto-browserify';
+import streamBrowserify from 'stream-browserify';
+import utilLib from 'util/';
+import assertLib from 'assert/';
+import bufferLib from 'buffer/';
+import process from 'process/browser';
+
 let userConfig = undefined
 try {
   // try to import ESM first
@@ -47,17 +55,17 @@ const nextConfig = {
         'timers/promises': false,
         dgram: false,
         os: false,
-        crypto: require.resolve('crypto-browserify'),
-        stream: require.resolve('stream-browserify'),
+        crypto: cryptoBrowserify,
+        stream: streamBrowserify,
         http: false,
         https: false,
         zlib: false,
         path: false,
         url: false,
-        util: require.resolve('util/'),
-        assert: require.resolve('assert/'),
-        buffer: require.resolve('buffer/'),
-        process: require.resolve('process/browser'),
+        util: utilLib,
+        assert: assertLib,
+        buffer: bufferLib,
+        process: process,
       };
 
       // Explicitly handle MongoDB packages to prevent them from being bundled
