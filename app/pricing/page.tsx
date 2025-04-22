@@ -6,7 +6,7 @@ import PricingTable from "./pricing-table"
 import PricingTableSkeleton from "./pricing-table-skeleton"
 
 export const metadata = {
-  title: "Pricing - HyberHost",
+  title: "Pricing",
   description: "Affordable VPS and dedicated server hosting plans for your business",
 }
 

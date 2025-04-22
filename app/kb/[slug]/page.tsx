@@ -16,12 +16,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
   if (!article) {
     return {
-      title: "Article Not Found - HyberHost Knowledge Base",
+      title: "Article Not Found - Knowledge Base",
     }
   }
 
   return {
-    title: `${article.title} - HyberHost Knowledge Base`,
+    title: `${article.title} - Knowledge Base`,
     description: article.excerpt,
   }
 }

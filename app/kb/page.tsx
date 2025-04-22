@@ -9,7 +9,7 @@ import { KBSearchForm } from "@/components/kb-search-form"
 import { migrateDataIfNeeded } from "@/lib/mongodb"
 
 export const metadata: Metadata = {
-  title: "Knowledge Base - HyberHost",
+  title: "Knowledge Base",
   description: "Find answers to common questions and learn how to use HyberHost services.",
 }
 

@@ -20,7 +20,7 @@ import type { Metadata } from "next"
 
 export function generateMetadata(): Metadata {
   return {
-    title: "Kitchener Data Center - HyberHost",
+    title: "Kitchener Data Center",
     description: "Learn about our Kitchener datacenter facility, features, and specifications",
   }
 }

@@ -17,11 +17,10 @@ import {
   HardDrive,
 } from "lucide-react"
 import type { Metadata } from "next"
-import Head from "next/head"
 
 export function generateMetadata(): Metadata {
   return {
-    title: "London Data Center - HyberHost",
+    title: "London Data Center",
     description:
       "Our premium London data center facility at Telehouse London providing enterprise-grade hosting solutions",
   }
@@ -30,9 +29,6 @@ export function generateMetadata(): Metadata {
 export default function LondonDatacenterPage() {
   return (
     <>
-      <Head>
-        <title>London Data Center - HyberHost</title>
-      </Head>
       <div className="py-24 sm:py-32">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           {/* Hero Section */}

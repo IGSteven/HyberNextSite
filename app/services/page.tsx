@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Shield, Zap, Globe, CheckCircle2 } from "lucide-react"
 
 export const metadata = {
-  title: "Services - HyberHost",
+  title: "Services",
   description: "Explore our range of hosting services including VPS, dedicated servers, and cloud hosting",
 }
 

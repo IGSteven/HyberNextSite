@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { CheckCircle2, Server, Database, Globe, Shield, Zap, BarChart3 } from "lucide-react"
 
 export const metadata = {
-  title: "Shared Web Hosting - HyberHost",
+  title: "Shared Web Hosting",
   description: "Affordable cPanel/WHM shared web hosting with unlimited bandwidth and 24/7 support",
 }
 

@@ -8,7 +8,7 @@ import { Wifi, Zap, Shield, MapPin, Mail, Phone, Clock, ExternalLink } from "luc
 import { PeeringPartners, PeeringPartnersLoading, InternetExchanges, InternetExchangesLoading } from "./peering-data"
 
 export const metadata = {
-  title: "Our Network - HyberHost",
+  title: "Our Network",
   description: "Explore HyberHost's global network infrastructure, peering arrangements, and data centers",
 }
 

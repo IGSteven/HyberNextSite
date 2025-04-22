@@ -1,8 +1,8 @@
 import Link from "next/link"
 
 export const metadata = {
-  title: "Privacy Policy - HyberHost",
-  description: "Privacy policy for HyberHost services",
+  title: "Privacy Policy",
+  description: "How we collect, use, and protect your personal information",
 }
 
 export default function PrivacyPolicyPage() {

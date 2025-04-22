@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Shield, Server, Lock, Settings } from "lucide-react"
 
 export const metadata = {
-  title: "Licenses - HyberHost",
+  title: "Licenses",
   description: "Premium software licenses for your hosting environment",
 }
 

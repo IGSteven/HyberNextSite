@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 export const metadata = {
-  title: "Terms and Conditions - HyberHost",
+  title: "Terms and Conditions",
   description: "Terms and conditions for using HyberHost services",
 }
 

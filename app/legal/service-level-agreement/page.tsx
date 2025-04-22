@@ -1,7 +1,7 @@
 import Link from "next/link"
 
 export const metadata = {
-  title: "Service Level Agreement - HyberHost",
+  title: "Service Level Agreement",
   description: "Service Level Agreement (SLA) for HyberHost services",
 }
 

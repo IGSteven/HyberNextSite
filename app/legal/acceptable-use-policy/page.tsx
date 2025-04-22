@@ -1,8 +1,8 @@
 import Link from "next/link"
 
 export const metadata = {
-  title: "Acceptable Use Policy - HyberHost",
-  description: "Acceptable Use Policy for HyberHost services",
+  title: "Acceptable Use Policy",
+  description: "Guidelines for responsible use of our services",
 }
 
 export default function AcceptableUsePolicyPage() {

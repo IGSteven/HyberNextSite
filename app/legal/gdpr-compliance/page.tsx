@@ -1,8 +1,8 @@
 import Link from "next/link"
 
 export const metadata = {
-  title: "GDPR Compliance - HyberHost",
-  description: "Information about HyberHost's compliance with GDPR regulations",
+  title: "GDPR Compliance",
+  description: "Our data protection commitments and GDPR compliance information",
 }
 
 export default function GdprCompliancePage() {

@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { TicketIcon, FileText, Phone, Mail, Clock, Shield } from "lucide-react"
 
 export const metadata = {
-  title: "Support - HyberHost",
+  title: "Support",
   description: "Get help with your hosting services and technical issues",
 }
 

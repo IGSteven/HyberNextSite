@@ -25,8 +25,6 @@ const options = {
   // TLS/SSL settings - we use tls instead of ssl (more modern)
   tls: true,
   tlsInsecure: false, // Crucial for Vercel - do not allow insecure connections
-  tlsAllowInvalidCertificates: false,
-  tlsAllowInvalidHostnames: false,
   // Add connection timeout
   connectTimeoutMS: 10000, // Increase timeout for Vercel environment
   socketTimeoutMS: 30000,

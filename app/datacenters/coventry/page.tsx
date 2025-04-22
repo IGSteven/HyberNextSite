@@ -8,7 +8,7 @@ import type { Metadata } from "next"
 
 export function generateMetadata(): Metadata {
   return {
-    title: "Coventry Data Center - HyberHost",
+    title: "Coventry Data Center",
     description: "Our state-of-the-art Coventry data center facility providing enterprise-grade hosting solutions",
   }
 }

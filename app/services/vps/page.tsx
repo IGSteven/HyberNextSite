@@ -6,7 +6,7 @@ import VpsPlansLoading from "./vps-plans-loading"
 import ClientVpsPlans from "./client-vps-plans"
 
 export const metadata = {
-  title: "VPS Hosting - HyberHost",
+  title: "VPS Hosting",
   description: "High-performance VPS hosting solutions for your business",
 }
 

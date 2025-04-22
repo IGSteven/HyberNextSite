@@ -1,8 +1,8 @@
 import Link from "next/link"
 
 export const metadata = {
-  title: "Cookie Policy - HyberHost",
-  description: "Information about how HyberHost uses cookies and similar technologies",
+  title: "Cookie Policy",
+  description: "How we use cookies and similar technologies on our website",
 }
 
 export default function CookiePolicyPage() {

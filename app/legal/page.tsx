@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { FileText, Shield, Lock, Scale } from "lucide-react"
 
 export const metadata = {
-  title: "Legal Documents - HyberHost",
+  title: "Legal Documents",
   description: "Legal policies and documents for HyberHost services",
 }
 

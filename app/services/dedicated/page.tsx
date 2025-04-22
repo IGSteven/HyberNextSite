@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { CheckCircle2, Server, Shield, Zap, Globe, Cpu } from "lucide-react"
 
 export const metadata = {
-  title: "Dedicated Servers - HyberHost",
+  title: "Dedicated Servers",
   description: "Enterprise-grade dedicated servers with full hardware control and customization options",
 }
 

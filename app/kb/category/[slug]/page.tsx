@@ -14,12 +14,12 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
   if (!category) {
     return {
-      title: "Category Not Found - HyberHost Knowledge Base",
+      title: "Category Not Found - Knowledge Base",
     }
   }
 
   return {
-    title: `${category.name} - HyberHost Knowledge Base`,
+    title: `${category.name} - Knowledge Base`,
     description: category.description,
   }
 }
