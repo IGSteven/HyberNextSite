@@ -15,53 +15,23 @@
     "description": "Hey everyone! I'm MinecraftMaster, a Minecraft content creator with over 500,000 subscribers on YouTube. I create tutorials, Let's Plays, and server showcases for the Minecraft community. I've been creating content for over 5 years and love sharing my passion for building and creating in Minecraft.",
     "shortDescription": "Minecraft YouTuber with 500K+ subscribers specializing in tutorials and server showcases.",
     "testimonial": "I've tried many Minecraft hosting providers over the years, but HyberHost has been the most reliable by far. Their servers have zero lag even with 50+ players, and their support team is always there when I need them. My community deserves the best, and that's why I recommend HyberHost.",
-    "servicesUsed": [
-      {
-        "id": "mc1",
-        "name": "Premium Minecraft Server",
-        "description": "8GB RAM dedicated Minecraft server with DDoS protection",
-        "recommended": true,
-        "type": "minecraft"
-      },
-      {
-        "id": "web1",
-        "name": "WordPress Website",
-        "description": "Managed WordPress hosting for my community website",
-        "recommended": false,
-        "type": "web"
-      }
-    ],
-    "recommendedServices": [
-      {
-        "id": "mc2",
-        "name": "Starter Minecraft Server",
-        "description": "Perfect for small friend groups or new YouTubers. 4GB RAM with easy mod installation.",
-        "recommended": true,
-        "type": "minecraft",
-        "url": "/minecraft-hosting"
-      },
-      {
-        "id": "mc3",
-        "name": "Community Minecraft Server",
-        "description": "For growing communities with 20-50 players. 8GB RAM with premium support.",
-        "recommended": true,
-        "type": "minecraft",
-        "url": "/minecraft-hosting"
-      },
-      {
-        "id": "mc4",
-        "name": "Ultimate Minecraft Server",
-        "description": "For serious content creators. 16GB RAM with priority support and automatic backups.",
-        "recommended": true,
-        "type": "minecraft",
-        "url": "/minecraft-hosting"
-      }
-    ],
+    "servicesUsed": "**Premium Minecraft Server** - 8GB RAM dedicated Minecraft server with DDoS protection\n\n**WordPress Website** - Managed WordPress hosting for my community website\n\n**Discord Bot Hosting** - Custom bots for my Discord community with 24/7 uptime",
     "discount": 15,
     "affiliateId": "MM123",
     "featured": true,
     "audience": "Minecraft players aged 13-24 interested in multiplayer servers and creative builds",
-    "contentFocus": "Minecraft tutorials, server reviews, and community challenges"
+    "contentFocus": "Minecraft tutorials, server reviews, and community challenges",
+    "productConfig": {
+      "showProductGroups": [19, 14],
+      "productIds": [1, 2, 4],
+      "discountOverrides": [
+        {
+          "pid": 101,
+          "discountPercent": 0,
+          "name": "cPanel License"
+        }
+      ]
+    }
   },
   {
     "id": "partner2",
@@ -79,53 +49,15 @@
     "description": "What's up everyone! I'm GameStreamer, a full-time Twitch streamer focusing on MMORPGs and FPS games. With a community of over 100,000 followers, I stream daily and love hosting community events where my viewers can play together.",
     "shortDescription": "Full-time Twitch streamer with 100K+ followers specializing in MMORPGs and community events.",
     "testimonial": "As a streamer, having reliable servers for my community games is crucial. HyberHost gives me peace of mind with their 99.9% uptime guarantee and amazing performance. Whether we're playing modded Minecraft or running our guild website, HyberHost handles it all flawlessly.",
-    "servicesUsed": [
-      {
-        "id": "game1",
-        "name": "Game Server Bundle",
-        "description": "Multiple game servers (Minecraft, ARK, Valheim) for community events",
-        "recommended": true,
-        "type": "game"
-      },
-      {
-        "id": "vps1",
-        "name": "VPS Server",
-        "description": "For running Discord bots and community tools",
-        "recommended": true,
-        "type": "vps"
-      }
-    ],
-    "recommendedServices": [
-      {
-        "id": "game2",
-        "name": "Community Game Server",
-        "description": "Perfect for streamers hosting game nights. Supports multiple games with easy switching.",
-        "recommended": true,
-        "type": "game",
-        "url": "/game-servers"
-      },
-      {
-        "id": "discord1",
-        "name": "Discord Bot Hosting",
-        "description": "Keep your Discord community engaged with custom bots that never go offline.",
-        "recommended": true,
-        "type": "bot",
-        "url": "/vps-hosting"
-      },
-      {
-        "id": "web2",
-        "name": "Community Website",
-        "description": "Create a hub for your community with our easy-to-use website builder.",
-        "recommended": false,
-        "type": "web",
-        "url": "/web-hosting"
-      }
-    ],
+    "servicesUsed": "**Game Server Bundle** - Multiple game servers (Minecraft, ARK, Valheim) for community events\n\n**VPS Server** - For running Discord bots and community tools\n\n**Community Website** - A central hub for my streaming community with forums and event calendars",
     "discount": 10,
     "affiliateId": "GS456",
     "featured": true,
     "audience": "Gamers aged 18-35 interested in MMORPGs, FPS games, and community events",
-    "contentFocus": "Daily gaming streams, community events, and gaming news discussions"
+    "contentFocus": "Daily gaming streams, community events, and gaming news discussions",
+    "productConfig": {
+      "productIds": [2, 3, 5]
+    }
   },
   {
     "id": "partner3",
@@ -141,52 +73,26 @@
     "description": "Hi tech enthusiasts! I'm TechyTuber, creating in-depth tutorials, reviews, and discussions about web development, server management, and tech industry news. With a background in software engineering, I love helping my audience understand complex technical concepts.",
     "shortDescription": "Tech YouTuber specializing in web development, server management, and technical tutorials.",
     "testimonial": "As someone who tests a lot of hosting providers for my tutorials, HyberHost stands out for their developer-friendly environment. Their VPS offerings give me complete control while their managed services save me time. If you're serious about hosting your projects, HyberHost should be your top choice.",
-    "servicesUsed": [
-      {
-        "id": "vps2",
-        "name": "Developer VPS",
-        "description": "High-performance VPS for testing and demonstrations",
-        "recommended": true,
-        "type": "vps"
-      },
-      {
-        "id": "web3",
-        "name": "Multi-domain Hosting",
-        "description": "For hosting tutorial projects and documentation sites",
-        "recommended": true,
-        "type": "web"
-      }
-    ],
-    "recommendedServices": [
-      {
-        "id": "vps3",
-        "name": "Developer VPS",
-        "description": "Perfect for developers needing a reliable environment for testing and deployment.",
-        "recommended": true,
-        "type": "vps",
-        "url": "/vps-hosting"
-      },
-      {
-        "id": "web4",
-        "name": "Portfolio Hosting",
-        "description": "Showcase your projects with fast, reliable web hosting optimized for developers.",
-        "recommended": true,
-        "type": "web",
-        "url": "/web-hosting"
-      },
-      {
-        "id": "db1",
-        "name": "Managed Database",
-        "description": "Focus on your code, not database management, with our fully managed database services.",
-        "recommended": false,
-        "type": "database",
-        "url": "/database-hosting"
-      }
-    ],
+    "servicesUsed": "**Developer VPS** - High-performance VPS for testing and demonstrations\n\n**Multi-domain Hosting** - For hosting tutorial projects and documentation sites\n\n**Dedicated Database** - MySQL and PostgreSQL databases for app development tutorials",
     "discount": 12,
     "affiliateId": "TT789",
     "featured": false,
     "audience": "Developers, tech enthusiasts, and IT professionals",
-    "contentFocus": "Programming tutorials, server setup guides, and tech reviews"
+    "contentFocus": "Programming tutorials, server setup guides, and tech reviews",
+    "productConfig": {
+      "showProductGroups": [19, 14, 22],
+      "discountOverrides": [
+        {
+          "pid": 101,
+          "discountPercent": 0,
+          "name": "cPanel License"
+        },
+        {
+          "pid": 102,
+          "discountPercent": 5,
+          "name": "Plesk License"
+        }
+      ]
+    }
   }
 ]

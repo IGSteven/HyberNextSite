@@ -11,7 +11,10 @@ export const metadata: Metadata = {
 };
 
 export default async function PartnersPage() {
-  const { partners } = await getPartners();
+  const { partners: allPartners } = await getPartners();
+  
+  // Filter out partners who are shareholders
+  const partners = allPartners.filter(partner => !partner.isShareholder);
   
   return (
     <div className="container mx-auto px-4 py-12">

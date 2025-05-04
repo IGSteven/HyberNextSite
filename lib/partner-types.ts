@@ -41,14 +41,14 @@ export interface Partner {
   description: string; // Full bio
   shortDescription: string; // Short intro
   testimonial: string; // Creator's testimonial about HyberHost
-  servicesUsed: PartnerService[]; // Services they actually use
-  recommendedServices: PartnerService[]; // Services they recommend to audience
+  servicesUsed: string; // Markdown describing services they use
   discount: number; // Percentage discount (e.g., 10 for 10%)
   affiliateId: string; // WHMCS affiliate ID
   featured: boolean;
   audience?: string; // Description of their audience
   contentFocus?: string; // What kind of content they make
   productConfig?: PartnerProductConfig; // New field for product configuration
+  isShareholder?: boolean; // Indicates if partner owns shares in HyberHost
 }
 
 export interface PartnerListResponse {

@@ -447,7 +447,7 @@ export default function PartnerPricingTable({ partner }: PartnerPricingTableProp
     annually: 0
   }
 
-  // Get products by type
+  // Get products by type - keeping this for reference but not using for rendering
   const productsByType = products.reduce<Record<string, UIProduct[]>>((acc, product) => {
     if (!acc[product.type]) {
       acc[product.type] = [];
@@ -464,6 +464,53 @@ export default function PartnerPricingTable({ partner }: PartnerPricingTableProp
     CAD: 'ca',
     AUD: 'au'
   }
+  
+  // Helper to get display name for product type
+  const getProductTypeDisplayName = (type: string): string => {
+    switch (type) {
+      case "vps": return "VPS Hosting";
+      case "dedicated": return "Dedicated Server";
+      case "webhosting": return "Web Hosting";
+      case "addon": return "Add-on";
+      default: return type.charAt(0).toUpperCase() + type.slice(1);
+    }
+  };
+  
+  // Helper to determine if text should be white or black based on background
+  const getTextColor = (hexColor: string | undefined): string => {
+    if (!hexColor) return 'white';
+    
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    // Calculate brightness using YIQ formula
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    
+    // Return black for bright backgrounds, white for dark
+    return (yiq >= 128) ? 'black' : 'white';
+  };
+  
+  // Helper function to ensure color has proper contrast for text
+  const getContrastColor = (hexColor: string | undefined): string => {
+    // Default to orange if no brand color is provided
+    if (!hexColor) return '#ff5500';
+    
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    // Darken if too light for visual appeal
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    if (brightness > 200) {
+      // Return a darker version for buttons and UI
+      return `rgb(${Math.max(0, r - 60)}, ${Math.max(0, g - 60)}, ${Math.max(0, b - 60)})`;
+    }
+    
+    return hexColor;
+  };
   
   // Create a currency selector component with flag backgrounds and cookie storage
   const CurrencySelector = () => {
@@ -518,11 +565,8 @@ export default function PartnerPricingTable({ partner }: PartnerPricingTableProp
   const DiscountBadge = ({ discount }: { discount: number }) => {
     if (discount <= 0) return null;
     
-    return (
-      <div className="absolute -top-3 -right-3 bg-red-600 text-white rounded-full px-3 py-1 text-sm font-bold shadow-lg transform rotate-12 z-10">
-        {discount}% OFF
-      </div>
-    )
+    // Removing the discount badge from individual cards
+    return null;
   }
 
   if (isLoading) {
@@ -537,56 +581,70 @@ export default function PartnerPricingTable({ partner }: PartnerPricingTableProp
         </div>
         <CurrencySelector />
         
-        {/* Render products by type */}
-        {Object.entries(productsByType).map(([productType, productsList]) => (
-          <div key={productType} className={productType !== Object.keys(productsByType)[0] ? "mt-12" : ""}>
-            <h2 className="text-2xl font-bold mb-8 text-center">
-              {productType === "vps" ? "VPS Hosting Plans" : 
-               productType === "dedicated" ? "Dedicated Server Plans" : 
-               productType === "webhosting" ? "Web Hosting Plans" :
-               productType === "addon" ? "Add-on Products" :
-               `${productType.charAt(0).toUpperCase() + productType.slice(1)} Products`}
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {productsList.map((product) => (
-                <div key={product.id} className="flex flex-col border rounded-lg overflow-hidden relative">
-                  {!product.noDiscount && <DiscountBadge discount={product.discountApplied} />}
-                  <div className={`p-6 text-white ${productType === "dedicated" ? "bg-gradient-to-r from-hyber-orange to-hyber-red" : "bg-hyber-orange"}`}>
-                    <h3 className="text-xl font-bold">{product.name}</h3>
-                    <p className="mt-2 text-white">{product.shortDescription}</p>
-                  </div>
-                  <div className="p-6 flex-1 flex flex-col">
-                    <div className="mb-6">
-                      <p className="text-xs font-medium text-gray-400 mb-1">Starting From</p>
-                      <p className="text-3xl font-bold">
-                        {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
-                        {(product.pricing?.[currency]?.monthly || fallbackCurrency.monthly).toFixed(2)}
-                        <span className="text-sm font-normal text-muted-foreground ml-1">{currency}</span>
-                      </p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Billed monthly or {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
-                        {(product.pricing?.[currency]?.annually || fallbackCurrency.annually).toFixed(2)}/year
-                      </p>
-                    </div>
-                    <ul className="space-y-3 flex-1">
-                      {product.features.map((feature: string, index: number) => (
-                        <li key={index} className="flex items-start">
-                          <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-hyber-orange mr-2" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button asChild className="mt-6 w-full bg-hyber-orange hover:bg-hyber-red">
-                      <Link href={`/services/${productType}?plan=${product.id}&currency=${currency}&aff=${affiliateId}`}>
-                        {productType === "addon" ? "Add to Cart" : "Browse Plans"}
-                      </Link>
-                    </Button>
-                  </div>
+        <h2 className="text-2xl font-bold mb-8 text-center">
+          Available Products
+        </h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {products.map((product) => (
+            <div key={product.id} className="flex flex-col border rounded-lg overflow-hidden relative h-full">
+              <div 
+                className="p-6"
+                style={{
+                  backgroundColor: getContrastColor(partner.brandColor),
+                  color: getTextColor(getContrastColor(partner.brandColor))
+                }}
+              >
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xl font-bold">{product.name}</h3>
+                  <span className="inline-block bg-white/20 text-xs px-2 py-1 rounded"
+                    style={{ color: getTextColor(getContrastColor(partner.brandColor)) }}
+                  >
+                    {getProductTypeDisplayName(product.type)}
+                  </span>
                 </div>
-              ))}
+                <p className="mt-2">{product.shortDescription}</p>
+              </div>
+              <div className="p-6 flex-1 flex flex-col">
+                <div className="mb-6">
+                  <p className="text-xs font-medium text-gray-400 mb-1">Starting From</p>
+                  <p className="text-3xl font-bold">
+                    {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
+                    {(product.pricing?.[currency]?.monthly || fallbackCurrency.monthly).toFixed(2)}
+                    <span className="text-sm font-normal text-muted-foreground ml-1">{currency}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Billed monthly or {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
+                    {(product.pricing?.[currency]?.annually || fallbackCurrency.annually).toFixed(2)}/year
+                  </p>
+                </div>
+                <ul className="space-y-3 flex-1">
+                  {product.features.map((feature: string, index: number) => (
+                    <li key={index} className="flex items-start">
+                      <CheckCircle2 
+                        className="h-5 w-5 flex-shrink-0 mr-2" 
+                        style={{ color: getContrastColor(partner.brandColor) }}
+                      />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button 
+                  asChild 
+                  className="mt-6 w-full hover:opacity-90"
+                  style={{ 
+                    backgroundColor: getContrastColor(partner.brandColor),
+                    color: getTextColor(getContrastColor(partner.brandColor))
+                  }}
+                >
+                  <Link href={`/services/${product.type}?plan=${product.id}&currency=${currency}&aff=${affiliateId}`}>
+                    {product.type === "addon" ? "Add to Cart" : "Browse Plans"}
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
@@ -595,56 +653,76 @@ export default function PartnerPricingTable({ partner }: PartnerPricingTableProp
     <div className="w-full">
       <CurrencySelector />
       
-      {/* Render products by type */}
-      {Object.entries(productsByType).map(([productType, productsList]) => (
-        <div key={productType} className={productType !== Object.keys(productsByType)[0] ? "mt-12" : ""}>
-          <h2 className="text-2xl font-bold mb-8 text-center">
-            {productType === "vps" ? "VPS Hosting Plans" : 
-             productType === "dedicated" ? "Dedicated Server Plans" : 
-             productType === "webhosting" ? "Web Hosting Plans" :
-             productType === "addon" ? "Add-on Products" :
-             `${productType.charAt(0).toUpperCase() + productType.slice(1)} Products`}
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {productsList.map((product) => (
-              <div key={product.id} className="flex flex-col border rounded-lg overflow-hidden relative">
-                {!product.noDiscount && <DiscountBadge discount={product.discountApplied} />}
-                <div className={`p-6 text-white ${productType === "dedicated" ? "bg-gradient-to-r from-hyber-orange to-hyber-red" : "bg-hyber-orange"}`}>
-                  <h3 className="text-xl font-bold">{product.name}</h3>
-                  <p className="mt-2 text-white">{product.shortDescription}</p>
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <div className="mb-6">
-                    <p className="text-xs font-medium text-gray-400 mb-1">Starting From</p>
-                    <p className="text-3xl font-bold">
-                      {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
-                      {(product.pricing?.[currency]?.monthly || fallbackCurrency.monthly).toFixed(2)}
-                      <span className="text-sm font-normal text-muted-foreground ml-1">{currency}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Billed monthly or {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
-                      {(product.pricing?.[currency]?.annually || fallbackCurrency.annually).toFixed(2)}/year
-                    </p>
-                  </div>
-                  <ul className="space-y-3 flex-1">
-                    {product.features.map((feature: string, index: number) => (
-                      <li key={index} className="flex items-start">
-                        <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-hyber-orange mr-2" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button asChild className="mt-6 w-full bg-hyber-orange hover:bg-hyber-red">
-                    <Link href={`/services/${productType}?plan=${product.id}&currency=${currency}&aff=${affiliateId}`}>
-                      {productType === "addon" ? "Add to Cart" : "Browse Plans"}
-                    </Link>
-                  </Button>
-                </div>
+      <div className="mb-8 text-center">
+        <h2 className="text-3xl font-bold text-center mb-4">{partner.name} Community Pricing</h2>
+        {partner.discount > 0 && (
+          <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-2">
+            All prices shown include {partner.name}'s exclusive {partner.discount}% discount
+          </p>
+        )}
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {products.map((product) => (
+          <div key={product.id} className="flex flex-col border rounded-lg overflow-hidden relative h-full">
+            <div 
+              className="p-6"
+              style={{
+                backgroundColor: getContrastColor(partner.brandColor),
+                color: getTextColor(getContrastColor(partner.brandColor))
+              }}
+            >
+              <div className="flex justify-between items-start">
+                <h3 className="text-xl font-bold">{product.name}</h3>
+                <span 
+                  className="inline-block bg-white/20 text-xs px-2 py-1 rounded"
+                  style={{ color: getTextColor(getContrastColor(partner.brandColor)) }}
+                >
+                  {getProductTypeDisplayName(product.type)}
+                </span>
               </div>
-            ))}
+              <p className="mt-2">{product.shortDescription}</p>
+            </div>
+            <div className="p-6 flex-1 flex flex-col">
+              <div className="mb-6">
+                <p className="text-xs font-medium text-gray-400 mb-1">Starting From</p>
+                <p className="text-3xl font-bold">
+                  {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
+                  {(product.pricing?.[currency]?.monthly || fallbackCurrency.monthly).toFixed(2)}
+                  <span className="text-sm font-normal text-muted-foreground ml-1">{currency}</span>
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Billed monthly or {product.pricing?.[currency]?.prefix || fallbackCurrency.prefix}
+                  {(product.pricing?.[currency]?.annually || fallbackCurrency.annually).toFixed(2)}/year
+                </p>
+              </div>
+              <ul className="space-y-3 flex-1">
+                {product.features.map((feature: string, index: number) => (
+                  <li key={index} className="flex items-start">
+                    <CheckCircle2 
+                      className="h-5 w-5 flex-shrink-0 mr-2" 
+                      style={{ color: getContrastColor(partner.brandColor) }}
+                    />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <Button 
+                asChild 
+                className="mt-6 w-full hover:opacity-90"
+                style={{ 
+                  backgroundColor: getContrastColor(partner.brandColor),
+                  color: getTextColor(getContrastColor(partner.brandColor))
+                }}
+              >
+                <Link href={`/services/${product.type}?plan=${product.id}&currency=${currency}&aff=${affiliateId}`}>
+                  {product.type === "addon" ? "Add to Cart" : "Browse Plans"}
+                </Link>
+              </Button>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }

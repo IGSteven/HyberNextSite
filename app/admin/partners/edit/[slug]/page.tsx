@@ -332,6 +332,25 @@ export default function EditPartnerPage({ params }: { params: { slug: string } }
                     ></textarea>
                   </div>
                   <div>
+                    <label htmlFor="servicesUsed" className="block text-sm font-medium text-card-foreground mb-1">
+                      Services Used (Markdown format) *
+                    </label>
+                    <textarea
+                      id="servicesUsed"
+                      name="servicesUsed"
+                      rows={6}
+                      required
+                      defaultValue={typeof partner.servicesUsed === 'string' 
+                        ? partner.servicesUsed 
+                        : Array.isArray(partner.servicesUsed)
+                          ? partner.servicesUsed.map(s => `**${s.name}** - ${s.description}`).join('\n\n')
+                          : ''}
+                      placeholder="**Service Name** - Service description\n\n**Another Service** - Another description"
+                      className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    ></textarea>
+                    <p className="text-xs text-muted-foreground mt-1">Use markdown format for services. Bold service names with ** (double asterisks) and separate services with blank lines.</p>
+                  </div>
+                  <div>
                     <label htmlFor="testimonial" className="block text-sm font-medium text-card-foreground mb-1">
                       Testimonial
                     </label>
@@ -502,6 +521,18 @@ export default function EditPartnerPage({ params }: { params: { slug: string } }
                     />
                     <label htmlFor="featured" className="ml-2 block text-sm text-card-foreground">
                       Featured Partner (will be highlighted on partners page)
+                    </label>
+                  </div>
+                  <div className="flex items-center mt-3">
+                    <input
+                      type="checkbox"
+                      id="isShareholder"
+                      name="isShareholder"
+                      defaultChecked={partner.isShareholder}
+                      className="h-4 w-4 text-primary focus:ring-primary rounded"
+                    />
+                    <label htmlFor="isShareholder" className="ml-2 block text-sm text-card-foreground">
+                      Partner is a shareholder (shows ownership disclosure on partner page)
                     </label>
                   </div>
                 </div>

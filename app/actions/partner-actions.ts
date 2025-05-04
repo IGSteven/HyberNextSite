@@ -155,17 +155,8 @@ export async function updatePartner(slug: string, formData: FormData) {
     }
 
     // Handle servicesUsed and recommendedServices safely
-    let servicesUsed = [];
+    let servicesUsed = formData.get('servicesUsed') as string || ''; // Directly use as string
     let recommendedServices = [];
-    
-    try {
-      const servicesUsedString = formData.get('servicesUsed');
-      if (servicesUsedString) {
-        servicesUsed = JSON.parse(servicesUsedString as string);
-      }
-    } catch (e) {
-      console.warn('Error parsing servicesUsed, using default empty array');
-    }
     
     try {
       const recommendedServicesString = formData.get('recommendedServices');
@@ -188,9 +179,10 @@ export async function updatePartner(slug: string, formData: FormData) {
       testimonial: formData.get('testimonial') as string || undefined,
       discount: Number(formData.get('discount')) || 0,
       affiliateId: formData.get('affiliateId') as string,
-      servicesUsed: servicesUsed,
+      servicesUsed: servicesUsed, // Now a string, not an array
       recommendedServices: recommendedServices,
       featured: formData.get('featured') === 'on',
+      isShareholder: formData.get('isShareholder') === 'on',
       audience: formData.get('audience') as string || undefined,
       contentFocus: formData.get('contentFocus') as string || undefined,
       socialLinks: socialLinks,

@@ -77,8 +77,8 @@ export async function generateMetadata({ params }: PartnerPageProps): Promise<Me
   }
   
   return {
-    title: `${partner.name} recommends HyberHost | Get ${partner.discount}% Off`,
-    description: `${partner.name}, ${partner.creatorType}, recommends HyberHost for ${partner.contentFocus || 'hosting services'}. Get an exclusive ${partner.discount}% discount.`,
+    title: `${partner.name} Content Partner`,
+    description: `${partner.name}, ${partner.creatorType}, recommends HyberHost.`,
   };
 }
 
@@ -118,8 +118,8 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
             className="h-80 w-full" 
             style={{
               background: partner.brandColor 
-                ? `linear-gradient(to right, ${getContrastColor(partner.brandColor)}, ${getLighterColor(partner.brandColor)})`
-                : 'linear-gradient(to right, #2563EB, #4F46E5)'
+                ? `linear-gradient(145deg, ${getContrastColor(partner.brandColor)} 55%, #D98546 100%)`
+                : 'linear-gradient(145deg, #101a2a 55%, #D98546 100%)'
             }}
           ></div>
         )}
@@ -129,7 +129,7 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
             {partner.name} recommends HyberHost
           </h1>
           <p className="text-xl text-white mb-6 max-w-2xl mx-auto drop-shadow-md">
-            Join {partner.name}'s community with an exclusive {partner.discount}% discount on our hosting services
+            Enjoy {partner.discount}% off hosting and support {partner.name} through our hosting.
           </p>
           <Link 
             href={affiliateUrl}
@@ -215,7 +215,24 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
               )}
             </div>
             
-            {/* Audience section removed as requested */}
+            {/* Ownership Disclaimer - only shown for partners who are shareholders */}
+            {partner.isShareholder && (
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6 w-full">
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-amber-600 dark:text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <h4 className="text-sm font-medium text-amber-800 dark:text-amber-400">Ownership Disclosure</h4>
+                    <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+                      {partner.name} is a shareholder of HyberHost and actively participates in its operations.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             
             {partner.contentFocus && (
               <div className="bg-card border border-border p-4 rounded-lg w-full">
@@ -249,78 +266,30 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
               )}
             </div>
             
-            {/* Services the partner uses */}
+            {/* Services the partner uses - updated to display markdown */}
             <div className="mb-10">
               <h3 className="text-2xl font-bold mb-4">Services I Use</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                {partner.servicesUsed.map(service => (
-                  <div key={service.id} className="border border-border rounded-lg p-4 bg-card">
-                    <h4 className="font-bold text-lg mb-2">{service.name}</h4>
-                    <p className="text-muted-foreground text-sm">{service.description}</p>
-                    <div className="mt-3 inline-block bg-muted text-muted-foreground text-xs px-2 py-1 rounded">
-                      {service.type}
-                    </div>
-                  </div>
-                ))}
+              <div className="prose dark:prose-invert prose-headings:mb-3 prose-p:mt-1 prose-p:mb-4 prose-li:mt-1 max-w-none">
+                {partner.servicesUsed && (
+                  <div 
+                    dangerouslySetInnerHTML={{ 
+                      __html: partner.servicesUsed 
+                        .replace(/\n/g, '<br/>')
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    }} 
+                  />
+                )}
               </div>
             </div>
             
-            {/* Services the partner recommends */}
-            <div>
-              <h3 className="text-2xl font-bold mb-4">My Recommendations for You</h3>
-              <div className="grid grid-cols-1 gap-4">
-                {partner.recommendedServices.map(service => (
-                  <div 
-                    key={service.id} 
-                    className={`border border-border ${service.recommended ? 'bg-accent/20' : 'bg-card'} rounded-lg p-5 shadow-sm`}
-                  >
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                      <div>
-                        <h4 className="font-bold text-lg mb-2">{service.name}</h4>
-                        <p className="text-muted-foreground mb-4">{service.description}</p>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          <span className="inline-block bg-muted text-muted-foreground text-xs px-2 py-1 rounded">
-                            {service.type}
-                          </span>
-                          {service.recommended && (
-                            <span className="inline-block bg-primary/20 text-primary text-xs px-2 py-1 rounded">
-                              Highly Recommended
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="mt-4 md:mt-0">
-                        <Link 
-                          href={service.url ? addAffiliateIdToUrl(service.url, partner.affiliateId) : affiliateUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                            backgroundColor: service.recommended ? getContrastColor(partner.brandColor) : undefined,
-                            color: service.recommended && getTextColor(partner.brandColor) === 'white' ? 'white' : undefined
-                          }}
-                          className={`inline-block ${service.recommended ? 'hover:opacity-90 text-primary-foreground' : 'bg-muted hover:bg-muted/80 text-muted-foreground'} font-semibold py-2 px-6 rounded-lg transition-colors duration-300`}
-                        >
-                          Get Started
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Services the partner recommends - removed as requested */}
           </div>
         </div>
       </div>
       
       {/* Partner Pricing Section - new section */}
-      <div className="container mx-auto px-4 py-16 border-t border-border">
-        <h2 className="text-3xl font-bold text-center mb-10">
-          Exclusive {partner.name} Partner Pricing
-        </h2>
-        <p className="text-lg text-center text-muted-foreground mb-10 max-w-3xl mx-auto">
-          Get special pricing with {partner.name}'s exclusive {partner.discount}% discount on our premium hosting services
-        </p>
-        
+      <div className="container mx-auto px-4 py-16">        
         {/* Client component for pricing table with currency selector */}
         <PartnerPricingTable partner={partner} />
       </div>
