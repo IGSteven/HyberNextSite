@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getPartner, getAllPartnerSlugs, addAffiliateIdToUrl } from '@/lib/partner-utils';
 import { Metadata } from 'next';
+import { CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getCurrencyFromHostname, CURRENCY_SYMBOLS } from "@/lib/currency-utils";
+import PartnerPricingTable from './partner-pricing-table';
 
 // Helper function to ensure color has proper contrast for text
 function getContrastColor(hexColor: string | undefined): string {
@@ -211,12 +215,7 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
               )}
             </div>
             
-            {partner.audience && (
-              <div className="bg-card border border-border p-4 rounded-lg mb-6 w-full">
-                <h3 className="font-semibold mb-2">Audience</h3>
-                <p className="text-muted-foreground text-sm">{partner.audience}</p>
-              </div>
-            )}
+            {/* Audience section removed as requested */}
             
             {partner.contentFocus && (
               <div className="bg-card border border-border p-4 rounded-lg w-full">
@@ -311,6 +310,19 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
             </div>
           </div>
         </div>
+      </div>
+      
+      {/* Partner Pricing Section - new section */}
+      <div className="container mx-auto px-4 py-16 border-t border-border">
+        <h2 className="text-3xl font-bold text-center mb-10">
+          Exclusive {partner.name} Partner Pricing
+        </h2>
+        <p className="text-lg text-center text-muted-foreground mb-10 max-w-3xl mx-auto">
+          Get special pricing with {partner.name}'s exclusive {partner.discount}% discount on our premium hosting services
+        </p>
+        
+        {/* Client component for pricing table with currency selector */}
+        <PartnerPricingTable partner={partner} />
       </div>
       
       {/* Call to action */}

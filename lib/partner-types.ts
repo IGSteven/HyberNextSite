@@ -7,6 +7,20 @@ export interface PartnerService {
   url?: string; // Optional link to specific service
 }
 
+// New interface for product discount overrides
+export interface ProductDiscountOverride {
+  pid: number;         // Product ID
+  discountPercent: number; // Override discount percentage (0 for no discount)
+  name?: string;       // Optional name for reference
+}
+
+// New interface for partner-specific product configuration
+export interface PartnerProductConfig {
+  showProductGroups?: number[];    // List of product group IDs to show (if empty, show default VPS and Dedicated groups)
+  productIds?: number[];           // Specific product IDs to show (if empty, show all products in the groups)
+  discountOverrides?: ProductDiscountOverride[]; // Products with custom discount rates
+}
+
 export interface Partner {
   id: string;
   slug: string;
@@ -34,6 +48,7 @@ export interface Partner {
   featured: boolean;
   audience?: string; // Description of their audience
   contentFocus?: string; // What kind of content they make
+  productConfig?: PartnerProductConfig; // New field for product configuration
 }
 
 export interface PartnerListResponse {
