@@ -1,8 +1,6 @@
-# HyberNextSite
+# HyberHost's NextJS Website
 
 Welcome to the HyberNextSite project! This repository contains the source code for HyberHost's official website built with Next.js.
-
-![HyberHost Logo](public/double-h-monogram.png)
 
 ## About HyberHost
 
