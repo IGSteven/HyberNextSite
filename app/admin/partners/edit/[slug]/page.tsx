@@ -1,17 +1,48 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { updatePartner } from '@/app/actions/partner-actions';
 
-export default function NewPartnerPage() {
+export default function EditPartnerPage({ params }: { params: { slug: string } }) {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [partner, setPartner] = useState<any>(null);
   const [brandColor, setBrandColor] = useState('#3B82F6');
   const colorPickerRef = useRef<HTMLInputElement>(null);
   const colorTextRef = useRef<HTMLInputElement>(null);
+  const { slug } = params;
   
+  useEffect(() => {
+    async function fetchPartnerData() {
+      try {
+        const response = await fetch(`/api/admin/partners/${slug}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch partner data');
+        }
+        const data = await response.json();
+        if (data.success && data.partner) {
+          setPartner(data.partner);
+          // Set initial brand color state from partner data
+          if (data.partner.brandColor) {
+            setBrandColor(data.partner.brandColor);
+          }
+        } else {
+          throw new Error(data.error || 'Partner not found');
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching partner data');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    
+    fetchPartnerData();
+  }, [slug]);
+
   // Handle color picker change
   const handleColorPickerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newColor = e.target.value;
@@ -31,67 +62,97 @@ export default function NewPartnerPage() {
       }
     }
   };
-
+  
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setError('');
     
-    const formData = new FormData(event.currentTarget);
-    const partnerData = {
-      name: formData.get('name') as string,
-      slug: formData.get('slug') as string,
-      creatorType: formData.get('creatorType') as string,
-      profileImageUrl: formData.get('profileImageUrl') as string,
-      bannerImageUrl: formData.get('bannerImageUrl') as string,
-      brandColor: formData.get('brandColor') as string,
-      description: formData.get('description') as string,
-      shortDescription: formData.get('shortDescription') as string,
-      testimonial: formData.get('testimonial') as string,
-      discount: parseInt(formData.get('discount') as string, 10),
-      affiliateId: formData.get('affiliateId') as string,
-      featured: formData.get('featured') === 'on',
-      audience: formData.get('audience') as string,
-      contentFocus: formData.get('contentFocus') as string,
-      socialLinks: {
-        youtube: formData.get('youtube') as string,
-        twitch: formData.get('twitch') as string,
-        twitter: formData.get('twitter') as string,
-        instagram: formData.get('instagram') as string,
-        tiktok: formData.get('tiktok') as string,
-        discord: formData.get('discord') as string,
-        website: formData.get('website') as string,
-      }
-    };
-    
     try {
-      const response = await fetch('/api/admin/partners', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(partnerData),
-      });
+      const formData = new FormData(event.currentTarget);
+      const result = await updatePartner(slug, formData);
       
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to create partner');
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update partner');
       }
       
       router.push('/admin/partners');
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred while creating the partner');
-    } finally {
+      setError(err instanceof Error ? err.message : 'An error occurred while updating the partner');
       setIsSubmitting(false);
     }
+  }
+  
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Edit Partner</h1>
+        </div>
+        <div className="bg-card border border-border p-12 rounded-lg">
+          <div className="flex justify-center items-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Edit Partner</h1>
+          <Link 
+            href="/admin/partners" 
+            className="bg-muted hover:bg-muted/90 text-muted-foreground px-4 py-2 rounded"
+          >
+            Back to Partners
+          </Link>
+        </div>
+        <div className="bg-destructive/20 border border-destructive text-destructive p-6 rounded-lg">
+          <p className="mb-4">{error}</p>
+          <Link 
+            href="/admin/partners"
+            className="bg-muted hover:bg-muted/90 text-muted-foreground px-4 py-2 rounded"
+          >
+            Return to Partner List
+          </Link>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!partner) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Edit Partner</h1>
+          <Link 
+            href="/admin/partners" 
+            className="bg-muted hover:bg-muted/90 text-muted-foreground px-4 py-2 rounded"
+          >
+            Back to Partners
+          </Link>
+        </div>
+        <div className="bg-destructive/20 border border-destructive text-destructive p-6 rounded-lg">
+          <p className="mb-4">Partner not found</p>
+          <Link 
+            href="/admin/partners"
+            className="bg-muted hover:bg-muted/90 text-muted-foreground px-4 py-2 rounded"
+          >
+            Return to Partner List
+          </Link>
+        </div>
+      </div>
+    );
   }
   
   return (
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Add New Partner</h1>
+        <h1 className="text-2xl font-bold">Edit Partner: {partner.name}</h1>
         <Link 
           href="/admin/partners" 
           className="bg-muted hover:bg-muted/90 text-muted-foreground px-4 py-2 rounded"
@@ -123,6 +184,7 @@ export default function NewPartnerPage() {
                       id="name"
                       name="name"
                       required
+                      defaultValue={partner.name}
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
                   </div>
@@ -135,9 +197,11 @@ export default function NewPartnerPage() {
                       id="slug"
                       name="slug"
                       required
-                      className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                      placeholder="e.g. techguru, gamingwizard"
+                      defaultValue={partner.slug}
+                      readOnly
+                      className="w-full px-4 py-2 bg-muted/50 border border-border rounded-lg cursor-not-allowed"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">Slug cannot be changed to maintain URL consistency</p>
                   </div>
                   <div>
                     <label htmlFor="creatorType" className="block text-sm font-medium text-card-foreground mb-1">
@@ -147,6 +211,7 @@ export default function NewPartnerPage() {
                       id="creatorType"
                       name="creatorType"
                       required
+                      defaultValue={partner.creatorType}
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     >
                       <option value="">Select creator type</option>
@@ -166,6 +231,7 @@ export default function NewPartnerPage() {
                       type="text"
                       id="contentFocus"
                       name="contentFocus"
+                      defaultValue={partner.contentFocus || ''}
                       placeholder="E.g., Minecraft gameplay, tech reviews, programming tutorials"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -186,6 +252,7 @@ export default function NewPartnerPage() {
                       id="profileImageUrl"
                       name="profileImageUrl"
                       required
+                      defaultValue={partner.profileImageUrl}
                       placeholder="https://example.com/images/profile.jpg"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -198,6 +265,7 @@ export default function NewPartnerPage() {
                       type="url"
                       id="bannerImageUrl"
                       name="bannerImageUrl"
+                      defaultValue={partner.bannerImageUrl || ''}
                       placeholder="https://example.com/images/banner.jpg"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -246,6 +314,7 @@ export default function NewPartnerPage() {
                       id="shortDescription"
                       name="shortDescription"
                       required
+                      defaultValue={partner.shortDescription}
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
                   </div>
@@ -258,6 +327,7 @@ export default function NewPartnerPage() {
                       name="description"
                       rows={4}
                       required
+                      defaultValue={partner.description}
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     ></textarea>
                   </div>
@@ -269,6 +339,7 @@ export default function NewPartnerPage() {
                       id="testimonial"
                       name="testimonial"
                       rows={3}
+                      defaultValue={partner.testimonial || ''}
                       placeholder="What the partner has to say about HyberHost"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     ></textarea>
@@ -281,6 +352,7 @@ export default function NewPartnerPage() {
                       id="audience"
                       name="audience"
                       rows={2}
+                      defaultValue={partner.audience || ''}
                       placeholder="Description of their audience demographics"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     ></textarea>
@@ -300,6 +372,7 @@ export default function NewPartnerPage() {
                       type="url"
                       id="youtube"
                       name="youtube"
+                      defaultValue={partner.socialLinks?.youtube || ''}
                       placeholder="https://youtube.com/c/channel"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -312,6 +385,7 @@ export default function NewPartnerPage() {
                       type="url"
                       id="twitch"
                       name="twitch"
+                      defaultValue={partner.socialLinks?.twitch || ''}
                       placeholder="https://twitch.tv/channel"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -324,6 +398,7 @@ export default function NewPartnerPage() {
                       type="url"
                       id="twitter"
                       name="twitter"
+                      defaultValue={partner.socialLinks?.twitter || ''}
                       placeholder="https://twitter.com/username"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -336,6 +411,7 @@ export default function NewPartnerPage() {
                       type="url"
                       id="instagram"
                       name="instagram"
+                      defaultValue={partner.socialLinks?.instagram || ''}
                       placeholder="https://instagram.com/username"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -348,6 +424,7 @@ export default function NewPartnerPage() {
                       type="url"
                       id="tiktok"
                       name="tiktok"
+                      defaultValue={partner.socialLinks?.tiktok || ''}
                       placeholder="https://tiktok.com/@username"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -360,6 +437,7 @@ export default function NewPartnerPage() {
                       type="url"
                       id="discord"
                       name="discord"
+                      defaultValue={partner.socialLinks?.discord || ''}
                       placeholder="https://discord.gg/invite"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -372,6 +450,7 @@ export default function NewPartnerPage() {
                       type="url"
                       id="website"
                       name="website"
+                      defaultValue={partner.socialLinks?.website || ''}
                       placeholder="https://example.com"
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
@@ -394,6 +473,7 @@ export default function NewPartnerPage() {
                       min="0"
                       max="100"
                       required
+                      defaultValue={partner.discount}
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
                   </div>
@@ -406,6 +486,7 @@ export default function NewPartnerPage() {
                       id="affiliateId"
                       name="affiliateId"
                       required
+                      defaultValue={partner.affiliateId}
                       className="w-full px-4 py-2 bg-muted border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                     />
                   </div>
@@ -416,6 +497,7 @@ export default function NewPartnerPage() {
                       type="checkbox"
                       id="featured"
                       name="featured"
+                      defaultChecked={partner.featured}
                       className="h-4 w-4 text-primary focus:ring-primary rounded"
                     />
                     <label htmlFor="featured" className="ml-2 block text-sm text-card-foreground">
@@ -438,7 +520,7 @@ export default function NewPartnerPage() {
                   disabled={isSubmitting}
                   className={`px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium rounded-lg transition-colors duration-300 ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
                 >
-                  {isSubmitting ? 'Creating...' : 'Create Partner'}
+                  {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
             </div>

@@ -73,9 +73,10 @@ export async function createPartner(formData: FormData) {
       creatorType: formData.get('creatorType') as string,
       profileImageUrl: formData.get('profileImageUrl') as string,
       bannerImageUrl: formData.get('bannerImageUrl') as string || undefined,
+      brandColor: formData.get('brandColor') as string || undefined,
       description: formData.get('description') as string,
       shortDescription: formData.get('shortDescription') as string,
-      testimonial: formData.get('testimonial') as string,
+      testimonial: formData.get('testimonial') as string || undefined,
       discount: Number(formData.get('discount')) || 0,
       affiliateId: formData.get('affiliateId') as string,
       servicesUsed: servicesUsed,
@@ -119,7 +120,7 @@ export async function createPartner(formData: FormData) {
 }
 
 // Update an existing partner
-export async function updatePartner(id: string, formData: FormData) {
+export async function updatePartner(slug: string, formData: FormData) {
   try {
     // Check if socialLinks is passed as a string or as individual fields
     let socialLinks;
@@ -181,9 +182,10 @@ export async function updatePartner(id: string, formData: FormData) {
       creatorType: formData.get('creatorType') as string,
       profileImageUrl: formData.get('profileImageUrl') as string,
       bannerImageUrl: formData.get('bannerImageUrl') as string || undefined,
+      brandColor: formData.get('brandColor') as string || undefined,
       description: formData.get('description') as string,
       shortDescription: formData.get('shortDescription') as string,
-      testimonial: formData.get('testimonial') as string,
+      testimonial: formData.get('testimonial') as string || undefined,
       discount: Number(formData.get('discount')) || 0,
       affiliateId: formData.get('affiliateId') as string,
       servicesUsed: servicesUsed,
@@ -208,7 +210,7 @@ export async function updatePartner(id: string, formData: FormData) {
         console.error('Error reading partners file:', error);
       }
       
-      const index = partners.findIndex(p => p.id === id);
+      const index = partners.findIndex(p => p.slug === slug);
       if (index !== -1) {
         partners[index] = { ...partners[index], ...partnerUpdate };
         fs.writeFileSync(filePath, JSON.stringify(partners, null, 2));
@@ -220,7 +222,7 @@ export async function updatePartner(id: string, formData: FormData) {
       const { db } = await connectToDatabase();
       const collection = db.collection(process.env.COLLECTION_PARTNERS || 'partners');
       await collection.updateOne(
-        { id },
+        { slug },
         { $set: partnerUpdate }
       );
     }
@@ -236,7 +238,7 @@ export async function updatePartner(id: string, formData: FormData) {
 }
 
 // Delete a partner
-export async function deletePartner(id: string) {
+export async function deletePartner(slug: string) {
   try {
     if (process.env.STORAGE_DRIVE === 'FILE') {
       // File-based storage
@@ -252,13 +254,13 @@ export async function deletePartner(id: string) {
         console.error('Error reading partners file:', error);
       }
       
-      const filteredPartners = partners.filter(p => p.id !== id);
+      const filteredPartners = partners.filter(p => p.slug !== slug);
       fs.writeFileSync(filePath, JSON.stringify(filteredPartners, null, 2));
     } else {
       // MongoDB storage
       const { db } = await connectToDatabase();
       const collection = db.collection(process.env.COLLECTION_PARTNERS || 'partners');
-      await collection.deleteOne({ id });
+      await collection.deleteOne({ slug });
     }
 
     revalidatePath('/partners');

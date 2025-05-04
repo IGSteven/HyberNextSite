@@ -5,6 +5,57 @@ import { notFound } from 'next/navigation';
 import { getPartner, getAllPartnerSlugs, addAffiliateIdToUrl } from '@/lib/partner-utils';
 import { Metadata } from 'next';
 
+// Helper function to ensure color has proper contrast for text
+function getContrastColor(hexColor: string | undefined): string {
+  // Default to blue if no brand color is provided
+  if (!hexColor) return '#3B82F6';
+  
+  // For consistent UX, limit brightness of colors (too bright looks bad)
+  // Convert hex to RGB
+  const r = parseInt(hexColor.slice(1, 3), 16);
+  const g = parseInt(hexColor.slice(3, 5), 16);
+  const b = parseInt(hexColor.slice(5, 7), 16);
+  
+  // Darken if too light for visual appeal
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  if (brightness > 200) {
+    // Return a darker version for buttons and UI
+    return `rgb(${Math.max(0, r - 60)}, ${Math.max(0, g - 60)}, ${Math.max(0, b - 60)})`;
+  }
+  
+  return hexColor;
+}
+
+// Helper function to get a lighter version of the color for gradients and hover states
+function getLighterColor(hexColor: string | undefined): string {
+  if (!hexColor) return '#60A5FA'; // Default light blue
+  
+  // Convert hex to RGB
+  const r = parseInt(hexColor.slice(1, 3), 16);
+  const g = parseInt(hexColor.slice(3, 5), 16);
+  const b = parseInt(hexColor.slice(5, 7), 16);
+  
+  // Make lighter version (clamp to 255)
+  const lighter = `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`;
+  return lighter;
+}
+
+// Helper to determine if text should be white or black based on background
+function getTextColor(hexColor: string | undefined): string {
+  if (!hexColor) return 'white';
+  
+  // Convert hex to RGB
+  const r = parseInt(hexColor.slice(1, 3), 16);
+  const g = parseInt(hexColor.slice(3, 5), 16);
+  const b = parseInt(hexColor.slice(5, 7), 16);
+  
+  // Calculate brightness using YIQ formula
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  
+  // Return black for bright backgrounds, white for dark
+  return (yiq >= 128) ? 'black' : 'white';
+}
+
 interface PartnerPageProps {
   params: {
     slug: string;
@@ -59,7 +110,14 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
             <div className="absolute inset-0 bg-black bg-opacity-40"></div>
           </div>
         ) : (
-          <div className="h-80 w-full bg-gradient-to-r from-blue-600 to-indigo-700"></div>
+          <div 
+            className="h-80 w-full" 
+            style={{
+              background: partner.brandColor 
+                ? `linear-gradient(to right, ${getContrastColor(partner.brandColor)}, ${getLighterColor(partner.brandColor)})`
+                : 'linear-gradient(to right, #2563EB, #4F46E5)'
+            }}
+          ></div>
         )}
         
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center w-full max-w-4xl px-4">
@@ -73,7 +131,11 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
             href={affiliateUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 shadow-lg"
+            style={{
+              backgroundColor: getContrastColor(partner.brandColor),
+              color: getTextColor(partner.brandColor) === 'white' ? 'white' : 'black'
+            }}
+            className="inline-block hover:opacity-90 font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 shadow-lg"
           >
             Get {partner.discount}% Off Now
           </Link>
@@ -141,7 +203,7 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
                 </a>
               )}
               {partner.socialLinks.website && (
-                <a href={partner.socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-gray-700 hover:text-gray-900">
+                <a href={partner.socialLinks.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
                   <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 16.057v-3.057h2.994c-.059 1.143-.212 2.24-.456 3.279-.823-.12-1.674-.188-2.538-.222zm1.957 2.162c-.499 1.33-1.159 2.497-1.957 3.456v-3.62c.666.028 1.319.081 1.957.164zm-1.957-7.219v-3.015c.868-.034 1.721-.103 2.548-.224.238 1.027.389 2.111.446 3.239h-2.994zm0-5.014v-3.661c.806.969 1.471 2.15 1.971 3.496-.642.084-1.3.137-1.971.165zm2.703-3.267c1.237.496 2.354 1.228 3.29 2.146-.642.234-1.311.442-2.019.607-.344-.992-.775-1.91-1.271-2.753zm-7.241 13.56c-.244-1.039-.398-2.136-.456-3.279h2.994v3.057c-.865.034-1.714.102-2.538.222zm2.538 1.776v3.62c-.798-.959-1.458-2.126-1.957-3.456.638-.083 1.291-.136 1.957-.164zm-2.994-7.055c.057-1.128.207-2.212.446-3.239.827.121 1.68.19 2.548.224v3.015h-2.994zm1.024-5.179c.5-1.346 1.165-2.527 1.97-3.496v3.661c-.671-.028-1.329-.081-1.97-.165zm-2.005-.35c-.708-.165-1.377-.373-2.018-.607.937-.918 2.053-1.65 3.29-2.146-.496.844-.927 1.762-1.272 2.753zm-.549 1.918c-.264 1.151-.434 2.36-.492 3.611h-3.933c.165-1.658.739-3.197 1.617-4.518.88.361 1.816.67 2.808.907zm.009 9.262c-.988.236-1.92.542-2.797.9-.89-1.328-1.471-2.879-1.637-4.551h3.934c.058 1.265.231 2.488.5 3.651zm.553 1.917c.342.976.768 1.881 1.257 2.712-1.223-.49-2.326-1.211-3.256-2.115.636-.229 1.299-.435 1.999-.597zm9.924 0c.7.163 1.362.367 1.999.597-.931.903-2.034 1.625-3.257 2.116.489-.832.915-1.737 1.258-2.713zm.553-1.917c.27-1.163.442-2.386.501-3.651h3.934c-.167 1.672-.748 3.223-1.638 4.551-.877-.358-1.81-.664-2.797-.9zm.501-5.651c-.058-1.251-.229-2.46-.492-3.611.992-.237 1.929-.546 2.809-.907.877 1.321 1.451 2.86 1.616 4.518h-3.933z"/>
                   </svg>
@@ -171,19 +233,21 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
                 {partner.description}
               </p>
               
-              <div className="bg-muted/30 p-6 rounded-lg border border-accent mb-8">
-                <h3 className="text-xl font-bold mb-4 text-primary">Why I Recommend HyberHost</h3>
-                <div className="flex items-start mb-4">
-                  <div className="text-primary mr-3 mt-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
+              {partner.testimonial && (
+                <div className="bg-muted/30 p-6 rounded-lg border border-accent mb-8">
+                  <h3 className="text-xl font-bold mb-4 text-primary">Why I Recommend HyberHost</h3>
+                  <div className="flex items-start mb-4">
+                    <div className="text-primary mr-3 mt-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <blockquote className="italic text-card-foreground">
+                      "{partner.testimonial}"
+                    </blockquote>
                   </div>
-                  <blockquote className="italic text-card-foreground">
-                    "{partner.testimonial}"
-                  </blockquote>
                 </div>
-              </div>
+              )}
             </div>
             
             {/* Services the partner uses */}
@@ -231,7 +295,11 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
                           href={service.url ? addAffiliateIdToUrl(service.url, partner.affiliateId) : affiliateUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`inline-block ${service.recommended ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'bg-muted hover:bg-muted/80 text-muted-foreground'} font-semibold py-2 px-6 rounded-lg transition-colors duration-300`}
+                          style={{
+                            backgroundColor: service.recommended ? getContrastColor(partner.brandColor) : undefined,
+                            color: service.recommended && getTextColor(partner.brandColor) === 'white' ? 'white' : undefined
+                          }}
+                          className={`inline-block ${service.recommended ? 'hover:opacity-90 text-primary-foreground' : 'bg-muted hover:bg-muted/80 text-muted-foreground'} font-semibold py-2 px-6 rounded-lg transition-colors duration-300`}
                         >
                           Get Started
                         </Link>
@@ -246,7 +314,14 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
       </div>
       
       {/* Call to action */}
-      <div className="bg-gradient-to-r from-accent to-primary/80 py-16 px-4 mt-auto">
+      <div 
+        style={{
+          background: partner.brandColor 
+            ? `linear-gradient(to right, ${getContrastColor(partner.brandColor)}, ${getLighterColor(partner.brandColor)})`
+            : 'linear-gradient(to right, #3B82F6, #4F46E5)'
+        }}
+        className="py-16 px-4 mt-auto"
+      >
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold text-white mb-6">
             Join {partner.name} and thousands of others using HyberHost
@@ -258,7 +333,10 @@ export default async function PartnerPage({ params }: PartnerPageProps) {
             href={affiliateUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block bg-white hover:bg-gray-100 text-accent font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 shadow-lg"
+            className="inline-block bg-white hover:bg-gray-100 font-bold py-3 px-8 rounded-full text-lg transition-colors duration-300 shadow-lg"
+            style={{
+              color: getContrastColor(partner.brandColor)
+            }}
           >
             Get {partner.discount}% Off Today
           </Link>

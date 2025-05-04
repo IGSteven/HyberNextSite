@@ -58,10 +58,10 @@ export default async function AdminPartnersPage() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <Link href={`/admin/partners/edit/${partner.id}`} className="text-primary hover:text-primary/90 mr-4">
+                  <Link href={`/admin/partners/edit/${partner.slug}`} className="text-primary hover:text-primary/90 mr-4">
                     Edit
                   </Link>
-                  <Link href={`/admin/partners/delete/${partner.id}`} className="text-destructive hover:text-destructive/90">
+                  <Link href={`/admin/partners/delete/${partner.slug}`} className="text-destructive hover:text-destructive/90">
                     Delete
                   </Link>
                 </td>

@@ -14,6 +14,7 @@ export interface Partner {
   creatorType: string; // E.g., "YouTuber", "Twitch Streamer", "Content Creator"
   profileImageUrl: string; // Profile picture
   bannerImageUrl?: string; // Optional banner image
+  brandColor?: string; // Optional brand color in hex format (e.g., #FF5500)
   socialLinks: {
     youtube?: string;
     twitch?: string;
